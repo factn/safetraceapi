@@ -2,15 +2,12 @@ const express = require('express');
 
 const app = express();
 
-//sets up middleware
-app.use(
-    (request, response, next) => {
+const mockDataRoutes = require('./routes/mockData');
 
-        response.status(200).json(
-            {
-                message: 'Success!'
-            }
-        );
-    }
-);
+//sets up middleware
+app.use('/mockData', mockDataRoutes);
+
+// const otherRoute = require('./routes/otherRoute');
+// app.use('/otherRoute', otherRoute);
+
 module.exports = app;
