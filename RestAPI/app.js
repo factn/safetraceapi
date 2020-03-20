@@ -5,10 +5,16 @@ const app = express();
 //logging
 const morgan = require ('morgan');
 
+//request body parsing
+const bodyParser = require('body-parser');
+
 const mockDataRoutes = require('./routes/mockData');
 
 // log before using requests
 app.use(morgan('dev'));
+
+app.use (bodyParser.urlencoded({ extended: false }))
+app.use (bodyParser.json());
 
 //sets up middleware
 app.use('/mockData', mockDataRoutes);
@@ -20,7 +26,7 @@ app.use('/mockData', mockDataRoutes);
 // handle errors (if we reached this line, we havent reached a suitable route)
 app.use ( (request, response, next) => {
     const error = new Error ('Not Found!');
-    error.status(404);
+    error.status = 404;
 
     //forward the error request
     next (error);

@@ -11,8 +11,15 @@ router.get('/', (request, response, next) => {
 
 // handle post requests
 router.post('/', (request, response, next) => {
+
+    const dataPosted = {
+        id: request.body.id,
+        location: request.body.location,
+        timeStamp: request.body.timeStamp
+    };
     response.status(201).json({
-        message: 'Handling POST request to /mockData'
+        message: 'Handling POST request to /mockData',
+        createdData: dataPosted
     });
 });
 
