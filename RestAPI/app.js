@@ -1,5 +1,4 @@
 const express = require('express');
-
 const app = express();
 
 //logging
@@ -8,15 +7,36 @@ const morgan = require ('morgan');
 //request body parsing
 const bodyParser = require('body-parser');
 
-const mockDataRoutes = require('./routes/mockData');
+// add headers before using requests to avoid CORS errors
+app.use( (request, response, next) => {
+    // '*' means anyone has access ( otherwise supply urls )
+    response.header('Access-Control-Allow-Origin', '*');
+
+    response.header(
+        'Access-Control-Allow-Headers', 
+        'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+    );
+    
+    // just querying options
+    if (request.method === 'OPTIONS') {
+        response.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
+        // response.json({
+        //     message: "sdkfjhsdklfjhs"
+        // });
+        return response.status(200).json({});
+    }
+    next();
+});
+
 
 // log before using requests
-app.use(morgan('dev'));
+app.use (morgan('dev'));
 
 app.use (bodyParser.urlencoded({ extended: false }))
 app.use (bodyParser.json());
 
-//sets up middleware
+//sets up middleware routes
+const mockDataRoutes = require('./routes/mockData');
 app.use('/mockData', mockDataRoutes);
 
 // const otherRoute = require('./routes/otherRoute');
