@@ -1,3 +1,7 @@
+require('dotenv').config();
+
+// console.log(process.env);
+
 const http = require('http');
 
 const requestHandler = require('./app');

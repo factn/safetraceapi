@@ -1,4 +1,11 @@
+#Files To Ignore (NODE REST API) -Andres
+
 *.DS_Store
 node_modules/
 npm-debug.log
-/*.env
+*.env
+
+# TestDataBase Specific
+*AuthKeys.json
+
+########################################
