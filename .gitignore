@@ -5,4 +5,8 @@ node_modules/
 npm-debug.log
 *.env
 
+# Python files to ignore -Ari
+__pycache__/
+*.pyc
+
 ########################################
