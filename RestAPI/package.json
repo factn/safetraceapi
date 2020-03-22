@@ -1,0 +1,25 @@
+{
+  "name": "safetraceapirestapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "author": "Andres Gomez",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "googleapis": "^39.2.0",
+    "morgan": "^1.10.0"
+  },
+  "engines": {
+    "node": "12.x"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
+}
