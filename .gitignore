@@ -5,7 +5,4 @@ node_modules/
 npm-debug.log
 *.env
 
-# TestDataBase Specific
-*AuthKeys.json
-
 ########################################

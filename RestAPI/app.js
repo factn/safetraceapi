@@ -19,10 +19,7 @@ app.use( (request, response, next) => {
     
     // just querying options
     if (request.method === 'OPTIONS') {
-        response.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
-        // response.json({
-        //     message: "sdkfjhsdklfjhs"
-        // });
+        response.header('Access-Control-Allow-Methods', 'POST, PATCH, DELETE, GET');
         return response.status(200).json({});
     }
     next();
@@ -34,17 +31,17 @@ app.use (morgan('dev'));
 app.use (bodyParser.urlencoded({ extended: false }))
 app.use (bodyParser.json());
 
-//sets up middleware routes
-const mockDataRoutes = require('./routes/mockData');
+//set up middleware routes
+const mockDataRoutes = require('./routes/mockData/mockData');
 app.use('/mockData', mockDataRoutes);
 
 // const otherRoute = require('./routes/otherRoute');
 // app.use('/otherRoute', otherRoute);
 
-
 // handle errors (if we reached this line, we havent reached a suitable route)
 app.use ( (request, response, next) => {
-    const error = new Error ('Not Found!');
+    
+    const error = new Error ('Not Found! :: ' + request.url);
     error.status = 404;
 
     //forward the error request
@@ -54,10 +51,7 @@ app.use ( (request, response, next) => {
 // catches any errors
 app.use ( (error, request, response, next) => {
     response.status(error.status || 500);
-    response.json({
-        error: {
-            message: error.message
-        }
-    });
+    response.json({ error: { message: error.message } });
 });
+
 module.exports = app;
