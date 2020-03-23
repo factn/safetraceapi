@@ -19,11 +19,9 @@ The `Shamir` class is a set of methods for a secure (t, n) secret sharing scheme
 '10010101010010'
 ```
 
-### Homomorphic Operations
+### SSS Linear Homomorphism (for free!)
 
-#### Linear Homomorphism
-
-Shamir Secret Sharing as *linearly* homomorphic out of the box. If each player in the MPC protocol takes an index [1,..,n] and gets their share [x] of secret value x and [y] of secret value y, they can locally combine their shares to get a share [x+y]. Here's proof below.
+Shamir Secret Sharing as *linearly* homomorphic out of the box. If each player in the MPC protocol takes an index [1,..,n] and gets their share [x] of secret value x and [y] of secret value y, they can locally combine their shares to get a share [x+y]. Here's proof below:
 
 ```
 >>> from gf256 import GF256
@@ -52,7 +50,7 @@ Similarly a secret shared value x can be multiplied by a public value c with sim
 True
 ```
 
-#### Multiplicative Homomorphism
+### SSS Multiplicative Homomorphism (with triples trick)
 
 Shamir Secret Sharing is multiplicatively homomorphic except that the threshold number of shares needed for reconstruction doubles after every multiplication. To mitigate this problem there is a preprocessing phase to create a "TripleShare" three values [a],[b],[c] where secret values a,b,c have relationship a\*b=c.
 
@@ -74,3 +72,19 @@ rho = reconstruct([rho]_1, [rho]_2...)
 ```
 
 With this protocol (involving one round of communication and pre-created TripleShares) we can compute multiplications homomorphically in the secret shared space. Proof of this can be seen in test_secure_multiplication in the test file shamir_test.py
+
+## Circuits
+
+We'll need to generate and evaluate boolean circuits for desired computations. We've started with a very basic machine code format. This will probably be updated/adapted but we have to start somewhere:
+
+```
+1. The first two positions on the tape are reserved for constants 0 and 1 (in positions 0 and 1 respectively)
+
+2. The first line of machine code has one integer K specifying the number of input bits. These inputs take tape positions 2, 3, ..., K+2.
+
+3. Each subsequent line of machine code takes two bits on two tape positions applies the given operation (AND / XOR). The result bit is put in the next tape position ()
+
+4. Last lines of machine code list the output bits (labeled OUT)
+```
+
+If we can compile circuits in this format then we can evaluate them in clear text to verify the circuit works as desired. Then we can "run" the same circuit but with MPC protocols and shares for input rather than plaintext bits. 
