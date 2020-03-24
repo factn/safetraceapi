@@ -29,7 +29,7 @@ class Circuit:
 	def XOR(self, a, b):
 		if (type(a) == Share) and (type(b) == Share):
 			return a+b
-		elif (a in [0,1]) and (a in [0,1]):
+		elif (a in [0,1]) and (b in [0,1]):
 			return a^b
 		elif (a in [0,1]) and (type(b) == Share):
 			return b.scalar_shift(a)
