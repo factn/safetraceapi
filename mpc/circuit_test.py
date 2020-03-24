@@ -1,6 +1,6 @@
 from circuit import Circuit
 
-if __name__ == "__main__":
+test_cleartext_circuit():
 	x = 20000
 	y = 200
 	answer = x*y
@@ -14,6 +14,10 @@ if __name__ == "__main__":
 		y_bits = [0 for _ in range(32 - len(y_bits))]+ y_bits
 
 	c = Circuit("circuits/mul32_circuit.txt")
-	out_bits = c.run(x_bits+y_bits)
+	out_bits = c.evaluate(x_bits+y_bits)
 	out_string = ''.join([str(i) for i in out_bits])
 	print(eval('0b'+out_string) == answer)
+
+if __name__ == "__main__":
+	test_cleartext_citcuit()
+	print("PASS")

@@ -76,18 +76,18 @@ class Shamir:
 				raise ValueError("Reconstructed a value outside [0,1]")
 		return bitstring
 
-	def multiply_shares_round_1(self, x_shares, y_shares, triples):
+	def mul_gates_round_1(self, x_shares, y_shares, triples):
 		''' First phase (before communication) of secure share multiplication protocol for MPC.
 		'''
 
-		return [self.__prepare_mul(x_shares[i], y_shares[i], triples[i]) for i in range(len(triples))]
+		return [self.multiply_shars_round_1(x_shares[i], y_shares[i], triples[i]) for i in range(len(triples))]
 
-	def multiply_shares_round_2(self, x_shares, y_shares, er_lists, cs):
+	def mul_gates_round_2(self, x_shares, y_shares, er_lists, cs):
 		''' Second phase (after communication) of secure share multiplication protocol for MPC.
 		'''
 
 		assert len(er_lists) > self.t, "not enough shares for reconstruction"
-		return [self.__finish_mul(x_shares[i], y_shares[i], [e[i][0] for e in er_lists], [r[i][1] for r in er_lists], cs[i]) for i in range(len(x_shares))]
+		return [self.multiply_shars_round_2(x_shares[i], y_shares[i], [e[i][0] for e in er_lists], [r[i][1] for r in er_lists], cs[i]) for i in range(len(x_shares))]
 
 	def generate_triples_round_1(self, n_triples):
 		'''First round of secure triple generation protocol for MPC (offline phase)
@@ -144,10 +144,10 @@ class Shamir:
 			triples.append(TripleShare(a_shares[i], b_shares[i], c_share))
 		return triples
 
-	def __prepare_mul(self, s1, s2, triple):
+	def multiply_shars_round_1(self, s1, s2, triple):
 		return (s1 - triple.a, s2 - triple.b)
 
-	def __finish_mul(self, s1, s2, ep_shares, rho_shares, c):
+	def multiply_shars_round_2(self, s1, s2, ep_shares, rho_shares, c):
 		epsilon = self.reconstruct_secret(ep_shares)
 		rho = self.reconstruct_secret(rho_shares)
 		v1 = s2.scalar_mul(epsilon)
@@ -162,7 +162,8 @@ class Share:
 
 	def __init__(self, x, y):
 		assert x < 256, "player index too large"
-		assert type(y) == GF256, "y must be from GF256 class"
+		if type(y) != GF256:
+			y = GF256(y)
 		self.x = x
 		self.y = y
 
@@ -175,11 +176,13 @@ class Share:
 		return Share(self.x, self.y-other.y)
 
 	def scalar_shift(self, scalar):
-		assert type(scalar) == GF256, "scalar must be from GF256 class"
+		if type(scalar) != GF256:
+			scalar = GF256(scalar)
 		return Share(self.x, self.y+scalar)
 
 	def scalar_mul(self, scalar):
-		assert type(scalar) == GF256, "scalar must be from GF256 class"
+		if type(scalar) != GF256:
+			scalar = GF256(scalar)
 		return Share(self.x, self.y*scalar)
 
 	def __str__(self):
@@ -197,6 +200,19 @@ class TripleShare:
 		self.a = a
 		self.b = b
 		self.c = c
+
+def gen_triples(t, n, n_triples):
+	triples = [[] for _ in range(n)]
+	for i in range(n_triples):
+		a = randelement()
+		b = randelement()
+		c = a*b
+		a_shares = Shamir(t, n).share_secret(a)
+		b_shares = Shamir(t, n).share_secret(b)
+		c_shares = Shamir(t, n).share_secret(c)
+		for i in range(n):
+			triples[i].append(TripleShare(a_shares[i], b_shares[i], c_shares[i]))
+	return triples
 
 ##
 ## Helper Math
