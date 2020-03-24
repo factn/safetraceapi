@@ -44,7 +44,7 @@ def test_secure_multiplication():
 	# Each party
 	for i in range(n):
 		# computes intermediate values (er_list) for shares to be multiplied
-		er_list = shamir.multiply_shares_round_1([x[i] for x in x_sharings], [y[i] for y in y_sharings], triples[i])
+		er_list = shamir.mul_gates_round_1([x[i] for x in x_sharings], [y[i] for y in y_sharings], triples[i])
 		# broadcasts the intermediate values to all other parties
 		broadcasts.append(er_list)
 	
@@ -56,7 +56,7 @@ def test_secure_multiplication():
 	# Each party
 	for i in range(n):
 		# Collects broadcasted messages and uses these intermediate values to compute result shares
-		result_shares = shamir.multiply_shares_round_2([x[i] for x in x_sharings], [y[i] for y in y_sharings], broadcasts, [t.c for t in triples[i]])
+		result_shares = shamir.mul_gates_round_2([x[i] for x in x_sharings], [y[i] for y in y_sharings], broadcasts, [t.c for t in triples[i]])
 		player_result_shares.append(result_shares)
 
 	# Check values
