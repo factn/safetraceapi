@@ -5,8 +5,8 @@ import random
 import requests
 import json
 
-url = 'https://safetraceapi.herokuapp.com/testDB'
-# url = 'http://localhost:3000/testDB'
+# url = 'https://safetraceapi.herokuapp.com/testDB'
+url = 'http://localhost:3000/testDB'
 
 encryption = 'mpc'
 location_type = 'gps'
@@ -37,33 +37,28 @@ def build_random_datapoint ():
         'symptoms': get_random_symptoms()
     }
 
-
-post_amount = 10
-
+post_amount = 3
 post_data = {
   'values': [build_random_datapoint() for i in range(post_amount)]
 }
 
 print 'Posting Data:'
 # print post_data
-
-# sending post request and saving response as response object 
-response = requests.post(url = url, json = post_data) 
+response = requests.post(url = url, json = post_data).json()
 
 print 'Response:'
-print json.dumps(response.json())
+print json.dumps(response)
+added_event_ids = response['event_ids']
+
 
 print '\n\nGetting Data:'
-
 # event_id
 # allColumns = ['user_id', 'encryption', 'time', 'location_type', 'location', 'symptoms']
-
 params = {
-    "columns": "event_id, user_id",
-    "query": "user_id < 5"
+    # "columns": "event_id, user_id",
+    # "query": "event_id < 5"
 }
 
-response = requests.get(url = url, params = params) 
-  
+response = requests.get(url=url, json=params).json()
 print 'Response:'
-print json.dumps(response.json())
+print json.dumps(response)

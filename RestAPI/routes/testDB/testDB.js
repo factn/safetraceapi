@@ -6,10 +6,8 @@ const router = express.Router();
 const { pool } = require('../postgresql');
 
 const mainTable = 'main_table';
-/*
-event_id SERIAL PRIMARY KEY,
-*/
 
+/* event_id SERIAL PRIMARY KEY */
 const eventIDColumn = 'event_id';
 const allCols = ['user_id', 'encryption', 'time', 'location_type', 'location', 'symptoms'];
 
@@ -39,16 +37,12 @@ router.get('/', async (request, response, next) => {
 // handle post requests
 router.post('/', async (request, response, next) => {
     try {
-
-        // response.status(201).json( request.body );
-        
         const allColsStr = "(" + allCols.join(", ") + ")";
         const postValuesKey = 'values';
 
         if (!(postValuesKey in request.body))
             throw new Error("[POST] Error! request body must have a 'values' key holding an array of JSON objects to append");
         
-
         // json stringify was hard to read in postman...
         function obj2string (obj) {
             return Object.keys(obj).reduce( (t, v) => t + v + ': ' + obj[v] + ', ', '{ ') + '}';
@@ -56,7 +50,6 @@ router.post('/', async (request, response, next) => {
         function checkObjForAllColumns (obj) {
             // TODO: check value types....
             allCols.forEach( k => {
-                // throw new Error(JSON.stringify(obj, null, ''));
                 if (!(k in obj))
                     throw new Error(`[POST] Error! each element appended must contain keys: ${allColsStr} :: Missing Key: '${k}' in object: ${obj2string(obj)}`);
             });
@@ -69,8 +62,8 @@ router.post('/', async (request, response, next) => {
         
         const queryResult = await pool.query(sql);
 
-        // returns an object per instert where obj = { "event_id": event_id created for insert }
-        response.status(201).json( queryResult.rows );
+        // event_ids; an array of event_ids generated for each value inserted
+        response.status(201).json( { event_ids: queryResult.rows.map( r => r[eventIDColumn]) } );
     }
     catch (e) { next(e); }
 });
@@ -97,11 +90,8 @@ function assertQueryKey (request, body) {
 router.patch('/', async (request, response, next) => {
     try {
         let query = assertQueryKey('UPDATE', request.body);
-
         let sqlKeysArgs = getUpdateSQLArgs(request.body);
-        
         let sql = `UPDATE ${mainTable} SET ${sqlKeysArgs} WHERE ${query}`;
-        
         const queryResult = await pool.query(sql);
         response.status(200).json( queryResult );
     }
@@ -112,10 +102,8 @@ router.patch('/', async (request, response, next) => {
 router.delete ('/', async (request, response, next) => {
     try {
         let query = assertQueryKey('DELETE', request.body);
-
         const sql = `DELETE FROM ${mainTable} WHERE ${query}`;
         // const sql = `DELETE FROM ${mainTable}` // delete all
-        
         const queryResult = await pool.query(sql);
         response.status(200).json( queryResult );
     }

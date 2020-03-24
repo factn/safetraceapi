@@ -7,13 +7,11 @@ const app = express();
 //request body parsing
 const bodyParser = require('body-parser');
 
-
 const cors = require('cors');
 
 // add headers before using requests to avoid CORS errors
 app.use( (request, response, next) => {
     // '*' means anyone has access ( otherwise supply urls )
-    
     // response.header('Access-Control-Allow-Origin', '*');
     // response.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     
@@ -57,9 +55,6 @@ app.use ( (request, response, next) => {
 
 // catches any errors
 app.use ( (error, request, response, next) => {
-    // response.status(error.status || 500);
-    // response.json({ error: { message: error.message } });
-
     response.status(error.status || 500).json({ error: error.message });
 });
 
