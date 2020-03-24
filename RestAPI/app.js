@@ -36,8 +36,8 @@ app.use (bodyParser.urlencoded({ extended: false }))
 app.use (cors());
 
 //set up middleware routes
-const mockDataRoutes = require('./routes/mockData/mockData');
-app.use('/mockData', mockDataRoutes);
+// const mockDataRoutes = require('./routes/mockData/mockData');
+// app.use('/mockData', mockDataRoutes);
 
 const testDBRoutes = require('./routes/testDB/testDB');
 app.use('/testDB', testDBRoutes);
