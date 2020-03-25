@@ -1,3 +1,6 @@
+// TODO: protocol for blue tooth duplicate data between users?
+
+
 const express = require('express');
 const app = express();
 
@@ -36,12 +39,13 @@ app.use (cors());
 //set up middleware routes
 // const mockDataRoutes = require('./routes/mockData/mockData');
 // app.use('/mockData', mockDataRoutes);
-
-const testDBRoutes = require('./routes/testDB/testDB');
-app.use('/testDB', testDBRoutes);
-
+// const testDBRoutes = require('./routes/testDB/testDB');
+// app.use('/testDB', testDBRoutes);
 // const otherRoute = require('./routes/otherRoute');
 // app.use('/otherRoute', otherRoute);
+
+app.use('/api', require('./routes/api'));
+app.use('/api/users', require('./routes/users'));
 
 // handle errors (if we reached this line, we havent reached a suitable route)
 app.use ( (request, response, next) => {
