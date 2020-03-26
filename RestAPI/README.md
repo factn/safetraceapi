@@ -1,3 +1,8 @@
+&#x1F534;
+>**Disclaimer:** While we here at SafetraceAPI are committed to implementing encryption for data storage and retrieval, and MPC for secure computations, the iteration of the API outlined below is **NOT** encrypted, and will be used for testing data acquisition and visualization, while it is still a public and open source API, we suggest not storing any real life data yet!
+
+&#x1F534;
+
 # API Docs
 **Root URL** `https://safetraceapi.herokuapp.com/api`
 >#
