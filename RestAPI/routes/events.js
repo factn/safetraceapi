@@ -5,7 +5,7 @@ const router = require('express').Router();
 const { pool } = require('./postgresql');
 const queryUtils = require('./queryUtils');
 
-const mainTable = 'main_table';
+const eventsTable = 'events';
 const eventIDColumn = 'event_id';
 
 /*
@@ -22,10 +22,9 @@ OUTPUT: array of rows returned
         ...
     ]
 }
-
 */
 // handle get requests
-router.get('/', queryUtils.getRequestCallback(mainTable));
+router.get('/', queryUtils.getRequestCallback(eventsTable));
 
 /*
 GPS DATA
@@ -52,49 +51,26 @@ body = {
     'infection_status': 1,      // integer 0 - 3 [0 opt out] [1 dont know] [2 infected] [3 recovered]
 }
 
-QR SCAN DATA
-body = {
-    'user_id': 0,               // the associated user_id for the event_id
-    'row_type': 3,              // integer 0 - 3 [0: GPS] [1: BlueTooth] [2: Survey] [3: QR scan]
-    'qr_data': '234dsssg',      // qr scan data as string
-}
-
-
 OUTPUT
 {
     'event_id': event_id integer created for the row
 }
-
 */
 
+// adds single qoutes around string arguments for sql queries
+function stringifyArg(arg) {
+    return typeof arg === 'string' ? `'${arg}'` : arg;
+}
 // handle post requests
 router.post('/', async (request, response, next) => {
     try {
         let keys = Object.keys(request.body);
-        let values = keys.map(k=>queryUtils.stringifyArg(request.body[k])).join(',');       
-        let sql = `INSERT INTO ${mainTable} (${keys.join(", ")}) VALUES (${values}) RETURNING ${eventIDColumn};`;
-        // response.status(201).json( { sql: sql } );
+        let values = keys.map(k=>stringifyArg(request.body[k])).join(',');       
+        let sql = `INSERT INTO ${eventsTable} (${keys.join(", ")}) VALUES (${values}) RETURNING ${eventIDColumn};`;
         const queryResult = await pool.query(sql);
         response.status(201).json( queryResult.rows[0] );
     }
     catch (e) { next(e); }
 });
-    
-/*
-INPUT 
-{
-    'query': 'event_id = 0' // an SQL query
-}
-OUTPUT array of rows deleted
-{
-    rows: [ 
-        { event_id: x, time: xxxxxx, ... }, 
-        { event_id: y, time: yyyyyy, ... }, 
-        ...
-    ]
-}
-*/
-// handle delete requests
-// router.delete ('/', queryUtils.deleteRequestCallback(mainTable));
-
+  
 module.exports = router;

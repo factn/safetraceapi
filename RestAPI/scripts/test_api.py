@@ -26,7 +26,7 @@ import requests
 import json
 import os
 
-LOCAL = False
+LOCAL = True
 
 
 '''CLEAR THE DATABASE FOR TESTING PURPOSES'''
@@ -68,12 +68,13 @@ def print_obj_simple (obj):
 
 
 if LOCAL:
-    url = 'http://localhost:3000'
+    base_url = 'http://localhost:3000'
 else:
-    url = 'https://safetraceapi.herokuapp.com'
+    base_url = 'https://safetraceapi.herokuapp.com'
 
-url += '/api'
-users_url = url + '/users'
+base_url += '/api/'
+users_url = base_url + 'users'
+events_url = base_url + 'events'
 
 # SHOWS HOW TO GET ALL DATA FROM A TABLE
 def print_all_table (url, title):
@@ -93,7 +94,7 @@ def print_all_users ():
     print_all_table(users_url, 'USERS')
     
 def print_all_events():
-    print_all_table(url, 'EVENTS')
+    print_all_table(events_url, 'EVENTS')
     
 '''USER REGISTRATION:'''
 # phone numbers
@@ -167,7 +168,7 @@ gps_body = {
     'latitude': random.uniform(-90.0, 90.0),    # -90 to 90 float range
     'longitude': random.uniform(-180.0, 180.0), # -180 to 180 float range
 }
-response = requests.post(url=url, json=gps_body).json()
+response = requests.post(url=events_url, json=gps_body).json()
 '''
 response = {
     event_id: the event id generated for the POST
@@ -184,7 +185,7 @@ bluetooth_body = {
     'contact_id': user_ids[2],                  # other user detected by bluetooth
     'contact_level': random.uniform(0.0, 1.0),  # float value of the bluetooth signal strength
 }
-response = requests.post(url=url, json=bluetooth_body).json()
+response = requests.post(url=events_url, json=bluetooth_body).json()
 print_obj_simple (response)
 
 '''SURVEY POSTING'''
@@ -202,7 +203,7 @@ survey_body = {
     'infection_status': random.randint(0, 3),   # integer 0 - 3 [0 opt out] [1 dont know] [2 infected] [3 recovered]
 }
 
-response = requests.post(url=url, json=survey_body).json()
+response = requests.post(url=events_url, json=survey_body).json()
 '''
 response = {
     event_id: the event id generated for the POST
@@ -218,7 +219,7 @@ print ('\nUSER OPT OUT:')
 # simualte user 3 opting out of program, delete user 
     
 delete_body = {
-    "query": "user_id = {}".format(user_ids[2])
+    "user_id": user_ids[2]
 }
 response = requests.delete(url=users_url, json=delete_body).json()
 '''
