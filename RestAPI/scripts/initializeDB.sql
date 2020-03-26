@@ -40,5 +40,8 @@ CREATE TABLE events (
   infection_status INTEGER CONSTRAINT infection_status_range_error CHECK (infection_status >= 0 AND infection_status <= 3),
   -- [0 opt out (dont want to say)] -- [1 dont know] -- [2 infected] -- [3 recovered]
   CONSTRAINT infection_status_null_error CHECK (row_type != 2 OR (infection_status IS NOT NULL)),
-  CONSTRAINT infection_status_not_null_error CHECK (row_type = 2 OR (infection_status IS NULL))
+  CONSTRAINT infection_status_not_null_error CHECK (row_type = 2 OR (infection_status IS NULL)),
+
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (contact_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
