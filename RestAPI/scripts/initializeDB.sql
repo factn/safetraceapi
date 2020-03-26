@@ -2,20 +2,20 @@
 
 -- TODO: check if i need a readonly trigger for serial id's...
 
-DROP TABLE IF EXISTS users, main_table CASCADE;
+DROP TABLE IF EXISTS main_table, users, events CASCADE;
 
 CREATE TABLE users (
   user_id SERIAL PRIMARY KEY, -- user / device id
   phone_number BIGINT UNIQUE NOT NULL
 );
 
-CREATE TABLE main_table (
+CREATE TABLE events (
   event_id SERIAL PRIMARY KEY,
   time TIMESTAMP NOT NULL DEFAULT NOW(),
   user_id INTEGER NOT NULL,               -- from users table
   
-  row_type INTEGER NOT NULL CONSTRAINT row_type_range_error CHECK (row_type >= 0 AND row_type <= 3),              
-  -- [0: GPS] -- [1: BlueTooth] -- [2: Survey] -- [3: QR scan]
+  row_type INTEGER NOT NULL CONSTRAINT row_type_range_error CHECK (row_type >= 0 AND row_type <= 2),              
+  -- [0: GPS] -- [1: BlueTooth] -- [2: Survey]
   
   -- GPS
   longitude NUMERIC CONSTRAINT longitude_range_error CHECK (longitude >= -180 AND longitude <= 180),
@@ -40,13 +40,5 @@ CREATE TABLE main_table (
   infection_status INTEGER CONSTRAINT infection_status_range_error CHECK (infection_status >= 0 AND infection_status <= 3),
   -- [0 opt out (dont want to say)] -- [1 dont know] -- [2 infected] -- [3 recovered]
   CONSTRAINT infection_status_null_error CHECK (row_type != 2 OR (infection_status IS NOT NULL)),
-  CONSTRAINT infection_status_not_null_error CHECK (row_type = 2 OR (infection_status IS NULL)),
-  
-  --QR Scan
-  qr_data VARCHAR(4098),
-  CONSTRAINT qr_data_null_error CHECK (row_type != 3 OR (qr_data IS NOT NULL)),
-  CONSTRAINT qr_data_not_null_error CHECK (row_type = 3 OR (qr_data IS NULL)),
-  
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-  FOREIGN KEY (contact_id) REFERENCES users(user_id) ON DELETE CASCADE
+  CONSTRAINT infection_status_not_null_error CHECK (row_type = 2 OR (infection_status IS NULL))
 );

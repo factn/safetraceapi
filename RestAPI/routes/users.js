@@ -39,11 +39,7 @@ OUTPUT
 router.post('/', async (request, response, next) => {
     try {
         queryUtils.assertBodyKey (userInfo, request.body, 'POST');
-
         let sql = `INSERT INTO ${table} (${userInfo}) VALUES (${request.body[userInfo]}) RETURNING ${userID};`;
-        
-        // response.status(201).json( { sql: sql } );
-
         const queryResult = await pool.query(sql);
         response.status(201).json( queryResult.rows[0] );
     }
@@ -71,8 +67,6 @@ router.patch('/', async (request, response, next) => {
         queryUtils.assertBodyKey (userInfo, request.body, 'PATCH');
         
         let sql = `UPDATE ${table} SET ${userInfo} = ${request.body[userInfo]} WHERE ${userID} = ${request.body[userID]} RETURNING *`;
-        // response.status(200).json( { sql: sql } );
-        
         const queryResult = await pool.query(sql);
         response.status(200).json( queryResult.rows[0] );        
     }
@@ -83,18 +77,23 @@ router.patch('/', async (request, response, next) => {
 /*
 INPUT
 {
-    'query': 'user_id = 0' // an SQL query
+    'user_id': 0 // user id to delete
 }
-OUTPUT array of rows deleted
+OUTPUT user row deleted
 {
-    rows: [ 
-        { event_id: x, time: xxxxxx, ... }, 
-        { event_id: y, time: yyyyyy, ... }, 
-        ...
-    ]
+    'user_id': 0,               
+    'phone_number': 15553332222 
 }
 */
 // handle delete requests
-router.delete ('/', queryUtils.deleteRequestCallback(table));
+router.delete ('/', async (request, response, next) => {
+    try {
+        queryUtils.assertBodyKey (userID, request.body, 'DELETE');
+        const sql = `DELETE FROM ${table} WHERE ${userID} = ${request.body[userID]} RETURNING *;`;
+        const queryResult = await pool.query(sql);
+        response.status(200).json( { rows: queryResult.rows } );
+    }
+    catch (e) { next(e); }
+});
 
 module.exports = router;
