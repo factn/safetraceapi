@@ -26,4 +26,3 @@ class MockMessenger:
 					recv.put(r)
 		# print(f"{self.index} collected enough messages for round {round_n}")
 		return out
-

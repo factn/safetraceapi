@@ -11,20 +11,17 @@ def consumer(mq, n, result, t, processes):
         if not mq.empty():
             vals.append(mq.get())
     reconstructed = Shamir(t, n).reconstruct_bitstring_secret(vals)
-    print("result:", reconstructed)
     assert eval('0b'+reconstructed) == result, "result incorrect"
     mq.close()
     for p in processes:
         p.terminate()
 
 def run_circuit_process(t, n, c_path, index, queues, main_queue, inputs, triples):
-    print(f"starting node {index}")
     shamir = Shamir(t, n)
     messenger = MockMessenger(t, n, index, queues)
-    c = Circuit(c_path)
+    c = Circuit(c_path, ['S' for _ in range(len(inputs))])
     outputs = c.evaluate(inputs, shamir=shamir, messenger=messenger, triples=triples)
     main_queue.put(outputs)
-    print(f"closing node {index}")
 
 def test_mpc(t, n, c_path, n_triples, inputs, result):
     triples = gen_triples(t, n, n_triples)
@@ -38,6 +35,7 @@ def test_mpc(t, n, c_path, n_triples, inputs, result):
             inputs.extend(si[i])
         p = Process(target=run_circuit_process, args=(t, n, c_path, i+1, queues, mq, inputs, triples[i]))
         processes.append(p)
+    start = time.time()
     for p in processes:
         p.start()
     t1 = Thread(target=consumer, args=(mq, n, result, t, processes))
@@ -46,6 +44,7 @@ def test_mpc(t, n, c_path, n_triples, inputs, result):
         if p.is_alive():
             p.join()
     t1.join(n)
+    print(f"time: {round(time.time()-start, 4)} seconds")
     for q in queues:
         q.close()
         q.join_thread()
@@ -67,7 +66,6 @@ def test_mul32_circuit():
         y_bin = '0'+y_bin
     test_mpc(t, n, c_path, n_triples, [x_bin, y_bin], result)
 
-
 def test_tiny_circuit():
     t = 2
     n = 5
@@ -80,12 +78,6 @@ def test_tiny_circuit():
 
 if __name__ == "__main__":
     print("--BEGIN SHORT TEST (4 gates)--")
-    start = time.time()
     test_tiny_circuit()
-    print(f"time: {round(time.time()-start, 4)} seconds")
-    print(f"~{round(4/(time.time()-start))} gates per second")
     print("--BEGIN LONG TEST (12374 gates)--")
-    start = time.time()
     test_mul32_circuit()
-    print(f"time: {round(time.time()-start, 4)} seconds")
-    print(f"~{round(12374/(time.time()-start))} gates per second")
