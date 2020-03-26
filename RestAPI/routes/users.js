@@ -46,7 +46,6 @@ router.post('/', async (request, response, next) => {
     catch (e) { next(e); }
 });
 
-
 /*
 INPUT:
 {
@@ -73,7 +72,6 @@ router.patch('/', async (request, response, next) => {
     catch (e) { next(e); }
 });
 
-
 /*
 INPUT
 {
@@ -91,7 +89,7 @@ router.delete ('/', async (request, response, next) => {
         queryUtils.assertBodyKey (userID, request.body, 'DELETE');
         const sql = `DELETE FROM ${table} WHERE ${userID} = ${request.body[userID]} RETURNING *;`;
         const queryResult = await pool.query(sql);
-        response.status(200).json( { rows: queryResult.rows } );
+        response.status(200).json( queryResult.rows[0] );
     }
     catch (e) { next(e); }
 });
