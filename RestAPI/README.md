@@ -2,7 +2,7 @@
 **Root URL** `https://safetraceapi.herokuapp.com/api`
 >#
 >Any Calls to the API that don't succeed will return an error response:
->```json
+>```yaml
 >{ 
 >    "error": "[Error Message]" 
 >}
@@ -23,20 +23,20 @@
 **Method** : `GET`
 
 ***Request Body (**OPTIONAL**):***
-```json
+```yaml
 {
-    "columns": "user_id, phone_number", // (OPTIONAL) comma seperated column names
-    "query": "user_id = 0"              // (OPTIONAL) an SQL query
+    "columns": "user_id, phone_number", # (OPTIONAL) comma seperated column names
+    "query": "user_id = 0"              # (OPTIONAL) an SQL query
 }
 ```
 >- if `columns` is ommited, all columns are returned per row
 >- if `query` is ommited, all rows are returned
 
 ***Response:***
-```json
+```yaml
 {
-    // rows: an array of rows that met the query criteria
-    // each element contains an object corresponding to the columns specified in the request body
+    # rows: an array of rows that met the query criteria
+    # each element contains an object corresponding to the columns specified in the request body
     "rows": [ 
         { 
             "user_id": 1, 
@@ -53,16 +53,16 @@
 **Method** : `POST`
 
 ***Request Body:***
-```json
+```yaml
 {
-    // phone number as integer with country code
+    # phone number as integer with country code
     "phone_number": 15553332222 
 }
 ```
 ***Response:***
-```json
+```yaml
 {
-    //user_id integer created for user with phone number
+    # user_id integer created for user with phone number
     "user_id": 0 
 }
 ```
@@ -70,15 +70,15 @@
 **Method** : `PATCH`
 
 ***Request Body:***
-```json
+```yaml
 {
-    "user_id": 0,               // the user id to update
-    "phone_number": 15553332222 // phone number with country code to update
+    "user_id": 0,               # the user id to update
+    "phone_number": 15553332222 # phone number with country code to update
 }
 ```
 ***Response:***
-```json
-// the complete updated row
+```yaml
+# the complete updated row
 {
     "user_id": 0,
     "phone_number": 15553332222
@@ -88,14 +88,14 @@
 **Method** : `DELETE`
 
 ***Request Body:***
-```json
+```yaml
 {
-    "user_id": 0 // user id to delete
+    "user_id": 0 # user id to delete
 }
 ```
 ***Response:***
-```json
-// user row deleted
+```yaml
+# user row deleted
 {
     "user_id": 0,               
     "phone_number": 15553332222 
@@ -120,21 +120,20 @@
 **Method** : `GET`
 
 ***Request Body (**OPTIONAL**):***
-```json
+```yaml
 {
-    "columns": "event_id, user_id", // (OPTIONAL) comma seperated column names
-    "query": "row_type = 0"              // (OPTIONAL) an SQL query
+    "columns": "event_id, user_id", # (OPTIONAL) comma seperated column names
+    "query": "row_type = 0"         # (OPTIONAL) an SQL query
 }
 ```
-- if `columns` is ommited, all columns are returned per row
-
-- if `query` is ommited, all rows are returned
+>- if `columns` is ommited, all columns are returned per row
+>- if `query` is ommited, all rows are returned
 
 ***Response:***
-```json
+```yaml
 {
-    // rows: an array of rows that met the query criteria
-    // each element contains an object corresponding to the columns specified in the request body
+    # rows: an array of rows that met the query criteria
+    # each element contains an object corresponding to the columns specified in the request body
     "rows": [ 
         { 
             "event_id": 1, 
@@ -157,22 +156,22 @@
 >- *2 = Survey Data*
 
 ***[GPS Data] Request Body:***
-```json
+```yaml
 {
     "user_id": 0,       
     "row_type": 0,      
-    "latitude": 45,     // -90 to 90 float range
-    "longitude": 155,   // -180 to 180 float range
+    "latitude": 45,     # -90 to 90 float range
+    "longitude": 155,   # -180 to 180 float range
 }
 ```
 ***[BlueTooth Data] Request Body:***
 >The `contact_id` key must be a user ID found in the Users Table.  If it matches the `user_id` key, an error will be thrown.
-```json
+```yaml
 {
     "user_id": 0,           
     "row_type": 1,          
-    "contact_id": 1,        // other user detected 
-    "contact_level": .5,    // float value of the bluetooth signal strength
+    "contact_id": 1,        # other user detected 
+    "contact_level": .5,    # float value of the bluetooth signal strength
 }
 ```
 ***[Survey Data] Request Body:***
@@ -181,17 +180,17 @@
 >- *1 = User doesn't know*
 >- *2 = User is infected*
 >- *3 = User is recovered*
-```json
+```yaml
 {
     "user_id": 0, 
     "row_type": 2,
-    "symptoms": "cough, fever", // comma seperated string of symptoms
+    "symptoms": "cough, fever", # comma seperated string of symptoms
     "infection_status": 1,
 }
 ```
 ***Response:***
-```json
-//event_id integer created for the row
+```yaml
+# event_id integer created for the row
 {
     "event_id": 0 
 }
