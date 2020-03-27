@@ -26,7 +26,7 @@ import requests
 import json
 import os
 
-LOCAL = False
+LOCAL = True
 
 
 '''CLEAR THE DATABASE FOR TESTING PURPOSES'''

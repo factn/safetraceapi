@@ -1,3 +1,6 @@
+
+require('dotenv').config();
+
 // TODO: protocol for blue tooth duplicate data between users?
 const express = require('express');
 const app = express();
