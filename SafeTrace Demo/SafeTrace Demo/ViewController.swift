@@ -13,10 +13,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     
     var locationManager: CLLocationManager?
     
-    @IBOutlet weak var PhoneNumber: UITextField!
-    
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
