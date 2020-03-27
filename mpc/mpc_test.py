@@ -76,8 +76,25 @@ def test_tiny_circuit():
     result = 3
     test_mpc(t, n, c_path, n_triples, [x,y], result)
 
+def test_lessthan_circuit():
+    t = 2
+    n = 5
+    c_path = "circuits/lessthan32_circuit.txt"
+    n_triples = 200
+    for x,y in [(25, 25), (5000, 5050), (20, 1000000)]:
+        x_bin = bin(x)[2:]
+        while len(x_bin) < 32:
+            x_bin = '0'+x_bin
+        y_bin = bin(y)[2:]
+        while len(y_bin) < 32:
+            y_bin = '0'+y_bin
+        result = 1 if x<y else 0
+        test_mpc(t, n, c_path, n_triples, [x_bin, y_bin], result)
+
 if __name__ == "__main__":
     print("--BEGIN SHORT TEST (4 gates)--")
     test_tiny_circuit()
+    print("--BEGIN MEDIUM TEST (304 gates)--")
+    test_lessthan_circuit()
     print("--BEGIN LONG TEST (12374 gates)--")
     test_mul32_circuit()
