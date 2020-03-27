@@ -8,7 +8,7 @@ This folder contains the code for a basic iPhone app that will interface with th
 
 ## Current functionality
 
-In its current state, the app is a simple single view iPhone app with a button to create a new user entry with a phone number. This works by submitting a phone number in the popup box presented after clicking the "Click Here" button under "Sign Up with Phone Number." Information placed in the database via this method is NOT secured, so we advise that you DO NOT put any sensitive information in this field (including your real phone number).
+In its current state, the app is a simple single view iPhone app with a button to create a new user entry with a phone number. This works by submitting a phone number in the popup box presented after clicking the "Click Here" button under "Sign Up with Phone Number." After filling out the popup text field and clicking "submit," the phone nubmer will be inserted, along with an automatically generated user id, into the backend database. Information placed in the database via this method is NOT secured, so we advise that you DO NOT put any sensitive information in this field (including your real phone number).
 
 ## Future functionality
 
