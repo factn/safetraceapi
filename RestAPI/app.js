@@ -1,10 +1,12 @@
-// TODO: protocol for blue tooth duplicate data between users?
 
+require('dotenv').config();
+
+// TODO: protocol for blue tooth duplicate data between users?
 const express = require('express');
 const app = express();
 
 //logging
-// const morgan = require ('morgan');
+const morgan = require ('morgan');
 
 //request body parsing
 const bodyParser = require('body-parser');
@@ -28,7 +30,7 @@ app.use( (request, response, next) => {
 });
 
 // log before using requests
-// app.use (morgan('dev'));
+app.use (morgan('dev'));
 
 app.use (bodyParser.json());
 app.use (bodyParser.urlencoded({ extended: false }))
