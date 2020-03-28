@@ -80,14 +80,14 @@ class Shamir:
 		''' First phase (before communication) of secure share multiplication protocol for MPC.
 		'''
 
-		return [self.multiply_shars_round_1(x_shares[i], y_shares[i], triples[i]) for i in range(len(triples))]
+		return [self.multiply_shares_round_1(x_shares[i], y_shares[i], triples[i]) for i in range(len(triples))]
 
 	def mul_gates_round_2(self, x_shares, y_shares, er_lists, cs):
 		''' Second phase (after communication) of secure share multiplication protocol for MPC.
 		'''
 
 		assert len(er_lists) > self.t, "not enough shares for reconstruction"
-		return [self.multiply_shars_round_2(x_shares[i], y_shares[i], [e[i][0] for e in er_lists], [r[i][1] for r in er_lists], cs[i]) for i in range(len(x_shares))]
+		return [self.multiply_shares_round_2(x_shares[i], y_shares[i], [e[i][0] for e in er_lists], [r[i][1] for r in er_lists], cs[i]) for i in range(len(x_shares))]
 
 	def generate_triples_round_1(self, n_triples):
 		'''First round of secure triple generation protocol for MPC (offline phase)
@@ -144,10 +144,10 @@ class Shamir:
 			triples.append(TripleShare(a_shares[i], b_shares[i], c_share))
 		return triples
 
-	def multiply_shars_round_1(self, s1, s2, triple):
+	def multiply_shares_round_1(self, s1, s2, triple):
 		return (s1 - triple.a, s2 - triple.b)
 
-	def multiply_shars_round_2(self, s1, s2, ep_shares, rho_shares, c):
+	def multiply_shares_round_2(self, s1, s2, ep_shares, rho_shares, c):
 		epsilon = self.reconstruct_secret(ep_shares)
 		rho = self.reconstruct_secret(rho_shares)
 		v1 = s2.scalar_mul(epsilon)
