@@ -45,6 +45,7 @@ class Circuit:
 				msg = shamir.mul_gates_round_1(x_shares, y_shares, t)
 				messenger.broadcast(i, msg)
 				resps = messenger.collect(i)
+				resps.append(msg)
 				vals = shamir.mul_gates_round_2(x_shares, y_shares, resps, [j.c for j in t])
 				for k in range(len(indexes)):
 					tape[indexes[k]] = vals[k]
