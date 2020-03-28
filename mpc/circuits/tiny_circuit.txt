@@ -1,7 +1,0 @@
-4
-2 4 XOR
-3 5 XOR
-6 7 AND
-8 1 AND
-8 0 OUT
-9 1 OUT

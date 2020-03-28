@@ -4,55 +4,17 @@ class Circuit:
 
 	def __init__(self, path, input_types):
 		with open(path, "r") as f:
-			text = f.read()
-		lines = text.split("\n")
-		n_inputs = int(lines[0])
-		assert n_inputs == len(input_types), "first line of circuit must match number of inputs"
-		tape = [(('V', 0, False), None), (('V', 0, False), None)]
-		outputs = [None for _ in range(len([i for i in lines if "OUT" in i]))]
-		for i in input_types:
-			tape.append(((i, 0, False), None))
-		n_layers = 0
-		for l in lines[1:]:
-			words = l.split()
-			if words == []:
-				continue
-			in1 = tape[int(words[-2])]
-			in2 = tape[int(words[-3])]
-			layer1 = in1[0][1]
-			if in1[0][2]:
-				layer1 += 1
-			layer2 = in2[0][1]
-			if in2[0][2]:
-				layer2 += 1
-			layer = max(layer1, layer2)
-			n_layers = max(n_layers, layer)
-			if words[-1] == 'AND':
-				if (in1[0][0] == 'S') and (in2[0][0] == 'S'):
-					tape.append((('S', layer, True), words))
-				elif (in1[0][0] == 'S') or (in2[0][0] == 'S'):
-					tape.append((('S', layer, False), words))
-				elif (in1[0][0] == 'V') and (in2[0][0] == 'V'):
-					tape.append((('V', layer, False), words))
-				else:
-					raise ValueError("AND gate improperly formatted")
-			elif words[-1] == 'XOR':
-				if (in1[0][0] == 'S') or (in2[0][0] == 'S'):
-					tape.append((('S', layer, False), words))
-				elif (in1[0][0] == 'V') and (in2[0][0] == 'V'):
-					tape.append((('V', layer, False), words))
-				else:
-					raise ValueError("XOR gate improperly formatted")
-			elif words[-1] == 'OUT':
-				outputs[int(words[-2])] = int(words[-3])
-			else:
-				raise ValueError("Improperly formatted circuit")
+			data = f.read()
+		circuit, n_layers, outputs = self.__load_bristol_circuit(data, input_types)
 		self.output_indexes = outputs
 		self.circuit_layers = [[] for _ in range(n_layers+1)]
-		self.tape_len = len(tape)
-		for i in range(self.tape_len):
-			if tape[i][1] != None:
-				self.circuit_layers[tape[i][0][1]].append((i, tape[i][0][2], tape[i][1]))
+		lines = [k for k in data.split("\n")[4:] if 'EQW' not in k]
+		order = [int(i.split()[-2])+2 for i in lines]
+		self.tape_len = max(order)+1
+		for i in order:
+			gate = circuit[i]
+			if gate[1] != None:
+				self.circuit_layers[gate[0][1]].append((i, gate[0][2], gate[1]))
 
 	def evaluate(self, inputs, shamir=None, messenger=None, triples=None):
 		tape = [None for _ in range(self.tape_len)]
@@ -68,15 +30,15 @@ class Circuit:
 			for gate in layer:
 				if not gate[1]:
 					if gate[2][-1] == 'XOR':
-						tape[gate[0]] = self.XOR(tape[int(gate[2][-2])], tape[int(gate[2][-3])])
+						tape[gate[0]] = self.XOR(tape[gate[2][-2]], tape[gate[2][-3]])
 					elif gate[2][-1] == 'AND':
-						tape[gate[0]] = self.AND(tape[int(gate[2][-2])], tape[int(gate[2][-3])])
+						tape[gate[0]] = self.AND(tape[gate[2][-2]], tape[gate[2][-3]])
 					else:
 						raise ValueError(f"Improperly formatted gate: {gate}")
 				else:
 					indexes.append(gate[0])
-					x_shares.append(tape[int(gate[2][-3])])
-					y_shares.append(tape[int(gate[2][-2])])
+					x_shares.append(tape[gate[2][-3]])
+					y_shares.append(tape[gate[2][-2]])
 			if len(indexes) > 0:
 				t = triples[0:len(indexes)]
 				triples = triples[len(indexes):]
@@ -109,3 +71,72 @@ class Circuit:
 			return a.scalar_mul(b)
 		else:
 			raise ValueError(f"Inputs do not match AND gate: {(a, type(a)), (b, type(b))}")
+
+	def __load_bristol_circuit(self, data, input_types):
+		lines = data.split("\n")
+		last_index = int(lines[0].split()[-1])
+		inputs = [int(i) for i in lines[1].split() if i!='']
+		outputs = [int(i) for i in lines[2].split() if i!='']
+		n_inputs = inputs[1] if len(inputs)==2 else inputs[1]+inputs[2]
+		n_outputs = outputs[1] if len(outputs)==2 else outputs[1]+outputs[2]
+		output_indexes = list(range(last_index-n_outputs+2, last_index+2))
+		lines = lines[4:]
+		assert n_inputs == len(input_types), "first line of circuit must match number of inputs"
+		tape = {0: (('V', 0, False), None), 1:(('V', 0, False), None)}
+		for i in range(len(input_types)):
+			tape[i+2] = ((input_types[i], 0, False), None)
+		n_layers = 0
+		for l in lines:
+			words = l.split()
+			if words == []:
+				pass		
+			elif words[-1] == 'EQW':
+				for i in range(len(outputs)):
+					if outputs[i] == int(words[-2])+2:
+						outputs[i] = int(words[-3])+2
+			elif words[-1] == 'AND':
+				in1 = tape[int(words[-3])+2]
+				layer1 = in1[0][1]
+				if in1[0][2]:
+					layer1 += 1
+				in2 = tape[int(words[-4])+2]
+				layer2 = in2[0][1]
+				if in2[0][2]:
+					layer2 += 1
+				layer = max(layer1, layer2)
+				n_layers = max(n_layers, layer)
+				if (in1[0][0] == 'S') and (in2[0][0] == 'S'):
+					tape[int(words[-2])+2] = (('S', layer, True), (int(words[-4])+2, int(words[-3])+2, words[-1]))
+				elif (in1[0][0] == 'S') or (in2[0][0] == 'S'):
+					tape[int(words[-2])+2] = (('S', layer, False), (int(words[-4])+2, int(words[-3])+2, words[-1]))
+				elif (in1[0][0] == 'V') and (in2[0][0] == 'V'):
+					tape[int(words[-2])+2] = (('V', layer, False), (int(words[-4])+2, int(words[-3])+2, words[-1]))
+				else:
+					raise ValueError("AND gate improperly formatted")
+			elif words[-1] == 'XOR':
+				in1 = tape[int(words[-3])+2]
+				layer1 = in1[0][1]
+				if in1[0][2]:
+					layer1 += 1
+				in2 = tape[int(words[-4])+2]
+				layer2 = in2[0][1]
+				if in2[0][2]:
+					layer2 += 1
+				layer = max(layer1, layer2)
+				n_layers = max(n_layers, layer)
+				if (in1[0][0] == 'S') or (in2[0][0] == 'S'):
+					tape[int(words[-2])+2] = (('S', layer, False), (int(words[-4])+2, int(words[-3])+2, words[-1]))
+				elif (in1[0][0] == 'V') and (in2[0][0] == 'V'):
+					tape[int(words[-2])+2] = (('V', layer, False), (int(words[-4])+2, int(words[-3])+2, words[-1]))
+				else:
+					raise ValueError("XOR gate improperly formatted")
+			elif words[-1] == "INV":
+				in1 = tape[int(words[-3])+2]
+				layer = in1[0][1]
+				if in1[0][2]:
+					layer += 1
+				n_layers = max(n_layers, layer)
+				tape[int(words[-2])+2] = ((in1[0][0], layer, False), (int(words[-3])+2, 1, 'XOR'))
+			else:
+				raise ValueError("Improperly formatted circuit")
+		return tape, n_layers, output_indexes

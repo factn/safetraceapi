@@ -22,7 +22,7 @@ class MockMessenger:
 				r = recv.get()
 				if r[0] == round_n:
 					out.append(r[1])
-				else:
+				elif r[0] > round_n:
 					recv.put(r)
 		# print(f"{self.index} collected enough messages for round {round_n}")
 		return out
