@@ -38,3 +38,11 @@ struct postSymptoms: Codable {
     let symptoms: String
     let infection_status: Int
 }
+
+struct postTest: Codable {
+    let user_id: Int
+    let row_type: Int
+    let symptoms: String
+    let infection_status: Int
+}
+

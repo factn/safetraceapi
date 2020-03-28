@@ -15,7 +15,10 @@ In its current state, the app is a simple single view iPhone app with a button t
 In addition, the app will send the user's location data to the server at a pre-determiend time interval (currently set to every 60 seconds). No user action is required to activate this feature except for allowing location access when first opening the app. Please note: if you are using the iOS simulator, you need to set a location (can do so under the debug menu) in order for this to work.
 
 <strong>Symptom entry</strong>
-Similar to the new user entry, the user posts a text box
+Similar to the new user entry, the user can enter their symptoms in a popup text box after clicking the symptom entry button.
+
+<strong>Infection status</strong>
+Infection status can be submitted via the buttons (UISegmentedController) with the four options to set their infections status. This currently has a hard-coded user id value, which should reflect the user's actual id eventually.
 
 ## Future functionality
 
@@ -25,7 +28,7 @@ Similar to the new user entry, the user posts a text box
     <li>Bluetooth data collection and proximity detection</li>
     <li>Login functionality, storage of login info</li>
     <li>QR code scanner</li>
-    <li>Make sure GPS works in background of devices (suspect this doesn't work on real device)</li>
+    <li><strike>Make sure GPS works in background of devices (suspect this doesn't work on real device)</strike></li>
 </ul>
 
 ## How to use

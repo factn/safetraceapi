@@ -13,7 +13,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     
     
     let locationManager = CLLocationManager()
-    private var startTime: Date?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,7 +21,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         
         //self.view.backgroundColor = UIColor(hue: 0.5222, saturation: 0.63, brightness: 0.99, alpha: 1.0) /* #5de7fc */
         
-        //locationManager.requestWhenInUseAuthorization()
+        //get loc and permissions
         locationManager.requestAlwaysAuthorization()
         
         if CLLocationManager.locationServicesEnabled(){
@@ -30,6 +29,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
             locationManager.desiredAccuracy = kCLLocationAccuracyBest
             locationManager.startUpdatingLocation()
         }
+        
+        //ensure location can run in background
+        locationManager.allowsBackgroundLocationUpdates = true
+        locationManager.pausesLocationUpdatesAutomatically = false
   }
     
     //upload symptoms
@@ -48,7 +51,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
                 guard let text = alertController.textFields?.first?.text else {print("No text available"); return}
         
             let symptomPost = postSymptoms(user_id: 1, row_type: 2, symptoms: text, infection_status: 0)
-        // NB: phonePost is in PostFunctions.swift
         postSymptomInfo(post: symptomPost) { (error) in
             if let error = error{
                 fatalError(error.localizedDescription)
@@ -75,7 +77,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         let txt_int = Int(text) ?? 0
         
         let phonePost = postPhone(phone_number: txt_int)
-        // NB: phonePost is in PostFunctions.swift
+
         phonePoster(post: phonePost) { (error) in
             if let error = error{
                 fatalError(error.localizedDescription)
@@ -87,32 +89,81 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         self.present(alertController, animated: true)
     }
     
-    // constant GPS (every 60s)
+    // constant GPS monitoring (every 60s)
     // TODO: make sure this runs in background
-    // TODO: change from continuous passing of location to timed
-    // https://stackoverflow.com/questions/41981255/timer-on-location-manager
+    
+    var startTime = Date()
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]){
         
         
         
         if let location = locations.first{
-            let lat = location.coordinate.latitude
-            let long = location.coordinate.longitude
-                let phoneCoords = postLoc(row_type: 0, user_id: 1, latitude: lat, longitude: long)
-                postGPSInfo(post: phoneCoords) { (error) in
-                    if let error = error{
-                        fatalError(error.localizedDescription)
+            
+            let time = Date()
+            
+            let timeElapsed = time.timeIntervalSince(startTime)
+            
+            // only send to server every 60s, but phone gathers continuously due to method limitations
+            if timeElapsed > 60{
+                let lat = location.coordinate.latitude
+                let long = location.coordinate.longitude
+                    let phoneCoords = postLoc(row_type: 0, user_id: 1, latitude: lat, longitude: long)
+                    postGPSInfo(post: phoneCoords) { (error) in
+                        if let error = error{
+                            fatalError(error.localizedDescription)
+                        }
+                    
                     }
+                startTime = time
+            }
                 
-                }
-                /*do {
-                    sleep(60)
-                }*/
-            //})
         }
         
     }
     
+    //update status and send to server
+    @IBAction func testingController(_ sender: UISegmentedControl) {
+        switch sender.selectedSegmentIndex{
+        
+        //unknown (1 on server)
+        case 0:
+            let testPost = postTest(user_id: 1, row_type: 2, symptoms: "", infection_status: 1)
+            postTestStatus(post: testPost) { (error) in
+                if let error = error{
+                    fatalError(error.localizedDescription)
+                }
+            }
+            
+        //infected (2 on server)
+        case 1:
+            let testPost = postTest(user_id: 1, row_type: 2, symptoms: "", infection_status: 2)
+            postTestStatus(post: testPost) { (error) in
+                if let error = error{
+                    fatalError(error.localizedDescription)
+                }
+            }
+            
+        //recovered (3 on server)
+        case 2:
+            let testPost = postTest(user_id: 1, row_type: 2, symptoms: "", infection_status: 3)
+            postTestStatus(post: testPost) { (error) in
+                if let error = error{
+                    fatalError(error.localizedDescription)
+                }
+            }
+            
+        //user doesn't want to specify (0 on server)
+        case 3:
+            let testPost = postTest(user_id: 1, row_type: 2, symptoms: "", infection_status: 0)
+            postTestStatus(post: testPost) { (error) in
+                if let error = error{
+                    fatalError(error.localizedDescription)
+                }
+            }
+        default:
+            break;
+        }
 
+    }
     
 }
