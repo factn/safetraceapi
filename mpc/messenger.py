@@ -14,6 +14,9 @@ class MockMessenger:
 			if i != self.index-1:
 				self.queues[i].put((round_n, data))
 
+	def send(self, player, round_n, data):
+		self.queues[player-1].put((round_n, data))
+
 	def collect(self, round_n):
 		out = []
 		recv = self.queues[self.index-1]
