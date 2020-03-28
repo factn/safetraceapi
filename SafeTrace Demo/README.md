@@ -1,6 +1,6 @@
 # SafeTrace Demo Phone App
 
-Proejct written as part of: <a href = "https://safetraceapi.org">https://safetraceapi.org</a>.  Code in this folder written by <a href="https://jackhester.com">Jack Hester</a>
+Project written as part of: <a href = "https://safetraceapi.org">https://safetraceapi.org</a>.  Code in this folder written by <a href="https://jackhester.com">Jack Hester</a>
 
 ## Overview
 
