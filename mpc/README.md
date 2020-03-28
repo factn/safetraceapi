@@ -1,6 +1,31 @@
 # Multi Pary Computation
 
-https://en.wikipedia.org/wiki/Secure_multi-party_computation
+[What is Secure Multi Party Computation?](https://en.wikipedia.org/wiki/Secure_multi-party_computation)
+
+## Package Overview
+
+This Multi Party Computation implementation relies on three major classes:
+
+1. `Circuit` class: A boolean circuit evaluator (see: circuit.py)
+2. `MockMessenger` class: P2P communications layer, currently "mocked" with threads (see: messenger.py)
+3. `Shamir` class: Shamir Secret Sharing over field GF256 (see: shamir.py)
+
+## Circuits
+
+The `Circuit` class is instanciated with two arguments, a path to a bytecode file and a list of input types:
+- Bytecode Files are loaded from 'Bristol Fashion' txt files. Learn more about the bytecode format here: https://homes.esat.kuleuven.be/~nsmart/MPC/
+- Input types are a list of 'V' or 'S' characters where 'S' stands for share and 'V' for value (i.e. a plaintext bit).
+
+The `Circuit` class is made to work in such a way that if only plaintext bits are passed as inputs to the `Circuit` then it can be evaluated 100% locally (the `Circuit` class becomes a simple program executor). However if secret shared bits are passed to the `Circuit` a successful result can only be obtained if a distrbuted set of parties D all run the `Circuit` in parallel (each with their corresponding shares as inputs) where D must be greater than t+1 (and t is the degree of the polynomial from which the secret shares are sampled). When the share outputs are brought together and reconstructed, the correct value of the computation is finally revealed.
+
+A messenger class is only necessary if communication is necessary given the circuit and input types (communication is necessary for any AND gate that takes two share values as input).
+
+
+## Messengers
+
+Currently only the simple `MockMessenger` is implemented which suffices simply for testing: each party is modeled as a thread on a single machine and a `Queue` is used to "pass messages" between threads.
+
+For MPC in a truly distributed setting, implement a `Messenger` class where messages are sent and received over TLS.
 
 ## Shamir Secret Sharing 
 
@@ -19,7 +44,7 @@ The `Shamir` class is a set of methods for a secure (t, n) secret sharing scheme
 '10010101010010'
 ```
 
-### SSS Linear Homomorphism (for free!)
+### Homomorphisms of Shamir Secret Sharing
 
 Shamir Secret Sharing as *linearly* homomorphic out of the box. If each player in the MPC protocol takes an index [1,..,n] and gets their share [x] of secret value x and [y] of secret value y, they can locally combine their shares to get a share [x+y]. Here's proof below:
 
@@ -36,7 +61,7 @@ Shamir Secret Sharing as *linearly* homomorphic out of the box. If each player i
 True
 ```
 
-Similarly a secret shared value x can be multiplied by a public value c with simple local computations by all parties. Each player with share [x] can do c\*[x] to obtain a share [c\*x].
+Linear homomorphism also means that a secret shared value x may be multiplied by a public value c with simple local computations (by all parties). Each player with share [x] can do c\*[x] to obtain a share [c\*x].
 
 ```
 >>> from gf256 import GF256
@@ -50,9 +75,7 @@ Similarly a secret shared value x can be multiplied by a public value c with sim
 True
 ```
 
-### SSS Multiplicative Homomorphism (with triples trick)
-
-Shamir Secret Sharing is multiplicatively homomorphic except that the threshold number of shares needed for reconstruction doubles after every multiplication. To mitigate this problem there is a preprocessing phase to create a "TripleShare" three values [a],[b],[c] where secret values a,b,c have relationship a\*b=c.
+Shamir Secret Sharing is similarly *multiplicatively* homomorphic EXCEPT that the threshold number of shares needed for reconstruction doubles after every multiplication. To mitigate this problem there is a preprocessing phase to create a "TripleShare" three values [a],[b],[c] where secret values a,b,c have relationship a\*b=c.
 
 Players first compute:
 ```
@@ -71,20 +94,4 @@ rho = reconstruct([rho]_1, [rho]_2...)
 [r] = [xy]
 ```
 
-With this protocol (involving one round of communication and pre-created TripleShares) we can compute multiplications homomorphically in the secret shared space. Proof of this can be seen in test_secure_multiplication in the test file shamir_test.py
-
-## Circuits
-
-We'll need to generate and evaluate boolean circuits for desired computations. We've started with a very basic machine code format. This will probably be updated/adapted but we have to start somewhere:
-
-```
-1. The first two positions on the tape are reserved for constants 0 and 1 (in positions 0 and 1 respectively)
-
-2. The first line of machine code has one integer K specifying the number of input bits. These inputs take tape positions 2, 3, ..., K+2.
-
-3. Each subsequent line of machine code takes two bits on two tape positions applies the given operation (AND / XOR). The result bit is put in the next tape position ()
-
-4. Last lines of machine code list the output bits (labeled OUT)
-```
-
-If we can compile circuits in this format then we can evaluate them in clear text to verify the circuit works as desired. Then we can "run" the same circuit but with MPC protocols and shares for input rather than plaintext bits. 
+With this protocol (involving one round of communication and pre-created TripleShares) we can compute multiplications homomorphically in the secret shared space. Proof of this can be seen in test_secure_multiplication() in the test file shamir_test.py

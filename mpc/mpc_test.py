@@ -5,13 +5,15 @@ from multiprocessing import Queue, Process
 import time
 from threading import Thread
 
-def consumer(mq, n, result, t, processes):
+def consumer(mq, n, result, t, processes, reflect):
     vals = []
     while len(vals) < n:
         if not mq.empty():
             vals.append(mq.get())
-    reconstructed = Shamir(t, n).reconstruct_bitstring_secret(vals)
-    assert eval('0b'+reconstructed) == result, "result incorrect"
+    reconstructed = Shamir(t, n).reconstruct_bitstring_secret(vals)[::-1]
+    if reflect:
+        reconstructed = reconstructed[int(len(reconstructed)/2):]+reconstructed[:int(len(reconstructed)/2)]
+    assert eval('0b'+reconstructed) == eval('0b'+result), "result incorrect"
     mq.close()
     for p in processes:
         p.terminate()
@@ -23,7 +25,7 @@ def run_circuit_process(t, n, c_path, index, queues, main_queue, inputs, triples
     outputs = c.evaluate(inputs, shamir=shamir, messenger=messenger, triples=triples)
     main_queue.put(outputs)
 
-def test_mpc(t, n, c_path, n_triples, inputs, result):
+def test_mpc(t, n, c_path, n_triples, inputs, result, reflect=False):
     triples = gen_triples(t, n, n_triples)
     mq = Queue()
     queues = [Queue() for _ in range(n)]
@@ -38,7 +40,7 @@ def test_mpc(t, n, c_path, n_triples, inputs, result):
     start = time.time()
     for p in processes:
         p.start()
-    t1 = Thread(target=consumer, args=(mq, n, result, t, processes))
+    t1 = Thread(target=consumer, args=(mq, n, result, t, processes, reflect))
     t1.start()
     for p in processes:
         if p.is_alive():
@@ -50,51 +52,90 @@ def test_mpc(t, n, c_path, n_triples, inputs, result):
         q.join_thread()
     mq.join_thread()
 
-def test_mul32_circuit():
+def test_add64_circuit():
     t = 2
     n = 5
-    c_path = "circuits/mul32_circuit.txt"
-    n_triples = 6000
-    x = 101
-    y = 50000
-    result = x*y
-    x_bin = bin(x)[2:]
-    while len(x_bin) < 32:
-        x_bin = '0'+x_bin
-    y_bin = bin(y)[2:]
-    while len(y_bin) < 32:
-        y_bin = '0'+y_bin
-    test_mpc(t, n, c_path, n_triples, [x_bin, y_bin], result)
+    c_path = "bristol_circuits/add64.txt"
+    n_triples = 500
+    for x,y in [(100, 200), (111111, 23456), (2**30, 2**10), (2**63, 2**63+1), (2**64-1, 2**64-1)]:
+        result = bin((x+y)%(2**64))[2:]
+        x_bin = bin(x)[2:]
+        while len(x_bin) < 64:
+            x_bin = '0'+x_bin
+        y_bin = bin(y)[2:]
+        while len(y_bin) < 64:
+            y_bin = '0'+y_bin
+        test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result)
 
-def test_tiny_circuit():
+def test_sub64_circuit():
     t = 2
     n = 5
-    c_path = "circuits/tiny_circuit.txt"
-    n_triples = 2
-    x = '01'
-    y = '10'
-    result = 3
-    test_mpc(t, n, c_path, n_triples, [x,y], result)
+    c_path = "bristol_circuits/sub64.txt"
+    n_triples = 500
+    for x,y in [(1000, 2010), (2025, 111), (2**64-2, 2**64-2)]:
+        result = (x-y)%(2**64)
+        result = bin(result)[2:]
+        x_bin = bin(x)[2:]
+        while len(x_bin) < 64:
+            x_bin = '0'+x_bin
+        y_bin = bin(y)[2:]
+        while len(y_bin) < 64:
+            y_bin = '0'+y_bin
+        test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result)
 
-def test_lessthan_circuit():
+def test_mul64mod_circuit():
     t = 2
     n = 5
-    c_path = "circuits/lessthan32_circuit.txt"
-    n_triples = 200
-    for x,y in [(25, 25), (5000, 5050), (20, 1000000)]:
+    c_path = "bristol_circuits/mul64mod.txt"
+    n_triples = 10000
+    for x,y in [(111, 2025), (2**64-1, 2**64-1)]:
+        result = bin((x*y)%(2**64))[2:]
+        x_bin = bin(x)[2:]
+        while len(x_bin) < 64:
+            x_bin = '0'+x_bin
+        y_bin = bin(y)[2:]
+        while len(y_bin) < 64:
+            y_bin = '0'+y_bin
+        test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result)
+
+def test_mul64_circuit():
+    t = 2
+    n = 5
+    c_path = "bristol_circuits/mul64.txt"
+    n_triples = 10000
+    for x,y in [(111, 2025), (2**64-1, 2**64-1)]:
+        result = bin((x*y))[2:]
+        x_bin = bin(x)[2:]
+        while len(x_bin) < 64:
+            x_bin = '0'+x_bin
+        y_bin = bin(y)[2:]
+        while len(y_bin) < 64:
+            y_bin = '0'+y_bin
+        test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result, reflect=True)
+
+def test_lessthan32_circuit():
+    t = 2
+    n = 5
+    c_path = "bristol_circuits/lessthan32.txt"
+    n_triples = 10000
+    for x,y in [(111, 2025), (2025, 111), (2**32-1, 2**32-1)]:
+        result = bin(x<y)[2:]
         x_bin = bin(x)[2:]
         while len(x_bin) < 32:
             x_bin = '0'+x_bin
         y_bin = bin(y)[2:]
         while len(y_bin) < 32:
             y_bin = '0'+y_bin
-        result = 1 if x<y else 0
-        test_mpc(t, n, c_path, n_triples, [x_bin, y_bin], result)
+        test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result, reflect=True)
 
 if __name__ == "__main__":
-    print("--BEGIN SHORT TEST (4 gates)--")
-    test_tiny_circuit()
-    print("--BEGIN MEDIUM TEST (304 gates)--")
-    test_lessthan_circuit()
-    print("--BEGIN LONG TEST (12374 gates)--")
-    test_mul32_circuit()
+    print("--BEGIN ADD64 TEST--")
+    test_add64_circuit()
+    print("--BEGIN SUB64 TEST--")
+    test_sub64_circuit()
+    print("--BEGIN LT32 TEST--")
+    test_lessthan32_circuit()
+    print("--BEGIN MUL64MOD TEST--")
+    test_mul64mod_circuit()
+    print("--BEGIN MUL64 TEST--")
+    test_mul64_circuit()
