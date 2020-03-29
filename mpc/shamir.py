@@ -134,7 +134,7 @@ class Shamir:
 		'''
 
 		assert 2*self.t < self.n, "triple generation requires t>n/2"
-		assert len(c_share_shares) == self.n, "must have at least three participants"
+		assert len(c_share_shares) == self.n, f"triple generation requires all {self.n} participants"
 		triples = []
 		for i in range(len(c_share_shares[0])):
 			c_shares = [j[i] for j in c_share_shares]

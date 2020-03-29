@@ -119,8 +119,7 @@ def test_triple_creation(t, n, n_triples):
 
 
 if __name__ == "__main__":
-	for i in range(10):
-		test_reconstruction()
-		test_secure_addition()
-		test_secure_multiplication()
+	test_reconstruction()
+	test_secure_addition()
+	test_secure_multiplication()
 	print("PASS")
