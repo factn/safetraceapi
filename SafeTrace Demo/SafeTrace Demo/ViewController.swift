@@ -8,14 +8,22 @@
 
 import UIKit
 import CoreLocation
+import CoreBluetooth
+import MultipeerConnectivity
 
-class ViewController: UIViewController, CLLocationManagerDelegate {
+class ViewController: UIViewController, CLLocationManagerDelegate, CBPeripheralManagerDelegate{
+    
+    //let bluetooth_service = BTService()
     
     
     let locationManager = CLLocationManager()
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        initLocalBeacon() //TOOD: don't forget to re-activate, change colors to something else
+        startScanning()
         
         
         
@@ -165,5 +173,85 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         }
 
     }
+    
+    //bluetooth ranging
+    //find nearby devices
+    func startScanning() {
+        print("scanning")
+        let uuid = UUID(uuidString: "5A4BCFCE-174E-4BAC-A814-092E77F6B7E5")!
+        let beaconRegion = CLBeaconRegion(proximityUUID: uuid, major: 123, minor: 456, identifier: "MyBeacon")
+
+        locationManager.startMonitoring(for: beaconRegion)
+        locationManager.startRangingBeacons(in: beaconRegion)
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in region: CLBeaconRegion) {
+        if beacons.count > 0 {
+            updateDistance(beacons[0].proximity)
+        } else {
+            updateDistance(.unknown)
+        }
+    }
+
+    func updateDistance(_ distance: CLProximity) {
+        UIView.animate(withDuration: 0.8) {
+            switch distance {
+            case .unknown:
+                self.view.backgroundColor = UIColor.gray
+
+            case .far:
+                self.view.backgroundColor = UIColor.blue
+
+            case .near:
+                self.view.backgroundColor = UIColor.orange
+
+            case .immediate:
+                self.view.backgroundColor = UIColor.red
+            }
+        }
+    }
+
+    //turn iphone into ibeacon (emit signal)
+    var localBeacon: CLBeaconRegion!
+    var beaconPeripheralData: NSDictionary!
+    var peripheralManager: CBPeripheralManager!
+    
+    
+    func initLocalBeacon() {
+        print("init")
+        
+        if localBeacon != nil {
+            stopLocalBeacon()
+        }
+        
+        let localBeaconUUID = "5A4BCFCE-174E-4BAC-A814-092E77F6B7E5"
+        let localBeaconMajor: CLBeaconMajorValue = 123
+        let localBeaconMinor: CLBeaconMinorValue = 456
+
+        let uuid = UUID(uuidString: localBeaconUUID)!
+        localBeacon = CLBeaconRegion(proximityUUID: uuid, major: localBeaconMajor, minor: localBeaconMinor, identifier: "Your private identifer here")
+
+        beaconPeripheralData = localBeacon.peripheralData(withMeasuredPower: nil)
+        peripheralManager = CBPeripheralManager(delegate: self, queue: nil, options: nil)
+    }
+
+    func stopLocalBeacon() {
+        print("stopped iBeacon")
+        peripheralManager.stopAdvertising()
+        peripheralManager = nil
+        beaconPeripheralData = nil
+        localBeacon = nil
+    }
+
+    func peripheralManagerDidUpdateState(_ peripheral:
+        CBPeripheralManager) {
+        
+        if peripheral.state == .poweredOn {
+            peripheralManager.startAdvertising(beaconPeripheralData as? [String: Any])
+        } else if peripheral.state == .poweredOff {
+            peripheralManager.stopAdvertising()
+        }
+    }
+    
     
 }
