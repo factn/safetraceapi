@@ -10,12 +10,12 @@ class Messenger:
 	def broadcast(self, msg_type, round_n, data):
 		for i in range(len(self.queues)):
 			if i != self.index-1:
-				self.queues[i].put((uuid, msg_type, round_n, data))
+				self.queues[i].put((self.uuid, msg_type, round_n, data))
 
 	def send(self, player, msg_type, round_n, data):
-		self.queues[player-1].put((uuid, msg_type, round_n, data))
+		self.queues[player-1].put((self.uuid, msg_type, round_n, data))
 
-	def collect(self, msg_type, round_n, full_quorum=False):
+	def collect(self, round_n, full_quorum=False):
 		out = []
 		recv = self.queues[self.index-1]
 		n_resps = self.t
@@ -25,7 +25,7 @@ class Messenger:
 			if not recv.empty():
 				r = recv.get()
 				if (self.uuid==r[0]) and (r[2] == round_n):
-					out.append(r[1])
+					out.append(r[3])
 				elif (self.uuid==r[0]) and (r[2] < round_n):
 					pass
 				else:

@@ -1,6 +1,6 @@
 from circuit import Circuit
 from shamir import Shamir, gen_triples
-from messenger import MockMessenger
+from messenger import Messenger
 from multiprocessing import Queue, Process
 import time
 from threading import Thread
@@ -20,7 +20,7 @@ def consumer(mq, n, result, t, processes, reflect):
 
 def run_circuit_process(t, n, c_path, index, queues, main_queue, inputs, triples):
     shamir = Shamir(t, n)
-    messenger = MockMessenger(t, n, index, queues)
+    messenger = Messenger(t, n, index, queues, "abc")
     c = Circuit(c_path, ['S' for _ in range(len(inputs))])
     outputs = c.evaluate(inputs, shamir=shamir, messenger=messenger, triples=triples)
     main_queue.put(outputs)
@@ -83,6 +83,18 @@ def test_sub64_circuit():
             y_bin = '0'+y_bin
         test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result)
 
+def test_mul2_circuit():
+    t = 2
+    n = 5
+    c_path = "bristol_circuits/mul2.txt"
+    n_triples = 500
+    for x,y in [(0,1), (0,0), (1,1)]:
+        result = (x*y)
+        result = bin(result)[2:]
+        x_bin = bin(x)[2:]
+        y_bin = bin(y)[2:]
+        test_mpc(t, n, c_path, n_triples, [x_bin, y_bin], result)
+
 def test_mul64mod_circuit():
     t = 2
     n = 5
@@ -135,6 +147,8 @@ if __name__ == "__main__":
     test_sub64_circuit()
     print("--BEGIN LT32 TEST--")
     test_lessthan32_circuit()
+    print("--BEGIN MUL2 TEST--")
+    test_mul2_circuit()
     print("--BEGIN MUL64MOD TEST--")
     test_mul64mod_circuit()
     print("--BEGIN MUL64 TEST--")

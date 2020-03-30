@@ -15,15 +15,15 @@ class TripleGeneration:
 			msgs = self.shamir.generate_triples_round_1(self.batch_size)
 			for i in range(len(msgs)):
 				if i+1 != self.index:
-					self.messenger.send(i+1, round_, msgs[i])
+					self.messenger.send(i+1, "TRIP-AB", round_, msgs[i])
 			resps = self.messenger.collect(round_, full_quorum=True)
-			resps.append(msgs_1[self.index-1])
+			resps.append(msgs[self.index-1])
 
 			round_+=1
 			a_shares, b_shares, msgs = self.shamir.generate_triples_round_2(resps)
-			for i in range(len(msgs_2)):
+			for i in range(len(msgs)):
 				if i+1 != self.index:
-					self.messenger.send(i+1, round_, msgs[i])
+					self.messenger.send(i+1, "TRIP-C", round_, msgs[i])
 			resps = self.messenger.collect(round_, full_quorum=True)
 			resps.append(msgs[self.index-1])
 
