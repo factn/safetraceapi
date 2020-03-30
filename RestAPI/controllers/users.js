@@ -1,89 +1,175 @@
-// TODO: options returns all columns in mini doc...
 const { pool } = require('./postgresql');
 const queryUtils = require('./queryUtils');
+const bcrypt = require('bcrypt');
+const { v1 } = require('uuid');
 
-const table = 'users';
-const userID = 'user_id';
-const userInfo = 'phone_number';
+const TABLE = 'users';
+const EMAIL = 'email';
+const PASSWORD = 'password';
+const APIKEY = 'api_key';
+
+const validEmailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+async function getUserByEmail (email) {
+    const result = await pool.query(`SELECT * FROM ${TABLE} WHERE ${EMAIL} = '${email}';`);
+    return result.rows.length > 0 ? result.rows[0] : null;
+}
+
+function checkForEmailAndPassword (requestBody, action) {
+    queryUtils.assertBodyKey (EMAIL, requestBody, action);
+    queryUtils.assertBodyKey (PASSWORD, requestBody, action);    
+}
+function throwAuthError (action) {
+    throw new Error(`${action} :: Authorization Failed [Invalid Email Or Password]!`);
+}
+async function authorizePassword (request, action, user) {
+    let passwordMatch = await bcrypt.compare(request.body[PASSWORD], user[PASSWORD]);
+    if (!passwordMatch)
+        throwAuthError (action);
+}
+async function assertUserExists (action, request) {
+    let user = await getUserByEmail(request.body[EMAIL]);
+    if (!user) 
+        throwAuthError (action);
+    return user;
+}
+async function assertUserAuth (action, request) {
+    let user = await assertUserExists (action, request);
+    await authorizePassword (request, action, user);
+    return user;
+}
+
 
 /*
 INPUT:
 {
-    'columns': 'user_id, phone_number' // comma seperated column names (optional, default is all)
-    'query': 'user_id = 0'     // an SQL query (optional)
-}
-OUTPUT: array of rows returned
-{
-    rows: [ 
-        { user_id: x, phone_number: xxxxxx }, 
-        { user_id: y, phone_number: yyyyyy }, 
-        ...
-    ]
-}
-*/
-module.exports.get_users = queryUtils.getRequestCallback(table);
-
-/*
-INPUT:
-{
-    'phone_number': 15553332222 // phone number with country code
+    'email': appUsingAPI@site.com,
+    'password': 'password'
 }
 OUTPUT
 {
-    'user_id': user_id integer created for user with phone number
+    message: `Account Created For: appUsingAPI@site.com, save the API Key included in this object`,
+    apiKey: 'The-api-key....'
 }
 */
-module.exports.post_user = async (request, response, next) => {
+module.exports.user_signup = async (req, response, next) => {
     try {
-        queryUtils.assertBodyKey (userInfo, request.body, 'POST');
-        let sql = `INSERT INTO ${table} (${userInfo}) VALUES (${request.body[userInfo]}) RETURNING ${userID};`;
-        const queryResult = await pool.query(sql);
-        response.status(201).json( queryResult.rows[0] );
-    }
-    catch (e) { next(e); }
-};
+        const action = 'SIGN UP';
+        checkForEmailAndPassword (req.body, action);
 
-/*
-INPUT:
-{
-    'user_id': 0,               // the user id to update
-    'phone_number': 15553332222 // phone number with country code to update
-}
-OUTPUT
-{
-    'user_id': 0,               // the user id updated
-    'phone_number': 15553332222 // updated phone number
-}
-*/
-module.exports.patch_user = async (request, response, next) => {
-    try {
-        queryUtils.assertBodyKey (userID, request.body, 'PATCH');
-        queryUtils.assertBodyKey (userInfo, request.body, 'PATCH');
+        let email = req.body[EMAIL];
         
-        let sql = `UPDATE ${table} SET ${userInfo} = ${request.body[userInfo]} WHERE ${userID} = ${request.body[userID]} RETURNING *`;
-        const queryResult = await pool.query(sql);
-        response.status(200).json( queryResult.rows[0] );        
+        function throwError () {
+            throw new Error(`${action} :: Invalid Or Existing Email Address: ${email}`);
+        }
+        
+        if (!validEmailRegex.test(email))
+            throwError();
+        
+            
+        let user = await getUserByEmail(email);
+        if (user) 
+            throwError();
+            
+        const passwordEnc = await bcrypt.hash(req.body[PASSWORD], Number(process.env.BCRYPT_SALT));
+        
+        // make uuid for api key
+        let apiKey = await v1(); 
+                
+        const r = await pool.query(`INSERT INTO ${TABLE} (${EMAIL}, ${PASSWORD}, ${APIKEY}) VALUES ('${email}', '${passwordEnc}', '${apiKey}');`);
+        
+        // TODO: add a sign in explanation prompt...
+        response.status(201).json( { 
+            message: `Account Created For: ${email}, save the API Key included in this object`,
+            apiKey: apiKey
+        } );
+    }
+    catch (e) { next(e); }
+};
+
+
+
+/*
+INPUT:
+{
+    'email': appUsingAPI@site.com,
+    'password': 'password'
+}
+OUTPUT
+{
+    apiKey: 'The-api-key....'
+}
+*/
+module.exports.recover_api_key = async (req, response, next) => {
+    try {
+        const action = 'RECOVER API KEY';
+        checkForEmailAndPassword (req.body, action);
+        let user = await assertUserAuth (action, req);
+        response.status(201).json( { apiKey: user[APIKEY] } );
+    }
+    catch (e) { next(e); }
+};
+
+
+/*
+INPUT:
+{
+    'email': appUsingAPI@site.com,
+    'password': 'password',
+    'newPassword': 'password2', OPTIONAL
+    'newEmail': somenewemail',  OPTIONAL
+}
+OUTPUT
+{
+    message: `Account Credentials Updated For: [UPDATED EMAIL]`
+}
+*/
+module.exports.update_account_credentials = async (req, response, next) => {
+    try {
+        let action = 'UPDATE USER CREDENTIALS';
+        checkForEmailAndPassword (req.body, action);
+        const newPasswordKey = 'newPassword';
+        const newEmailKey = 'newEmail';
+
+        const changingPassword = newPasswordKey in req.body;
+        const changingEmail = newEmailKey in req.body;
+        
+        if ( (!changingPassword) && (!changingEmail) )
+            throw new Error(`Error! ${action} :: request body requires either a '${newPasswordKey}' key or '${newEmailKey}' key!`);
+        
+        let user = await assertUserAuth (action, req);
+
+        let email = changingEmail ? req.body[newEmailKey] : user[EMAIL];
+        
+        let pw = user[PASSWORD];
+        if (changingPassword) 
+            pw = await bcrypt.hash(req.body[newPasswordKey], Number(process.env.BCRYPT_SALT));
+            
+        let r = await pool.query(`UPDATE ${TABLE} SET ${PASSWORD} = '${pw}', ${EMAIL} = '${email}' WHERE ${EMAIL} = '${user[EMAIL]}';`);
+
+        response.status(200).json( { message: `Account Credentials Updated For: ${email}` } );        
     }
     catch (e) { next(e); }
 };
 
 /*
-INPUT
+INPUT:
 {
-    'user_id': 0 // user id to delete
+    'email': appUsingAPI@site.com,
+    'password': 'password'
 }
-OUTPUT user row deleted
+OUTPUT:
 {
-    'user_id': 0,               
-    'phone_number': 15553332222 
+    message: User Account Deleted: appUsingAPI@site.com
 }
 */
-module.exports.delete_user = async (request, response, next) => {
+module.exports.delete_user = async (req, response, next) => {
     try {
-        queryUtils.assertBodyKey (userID, request.body, 'DELETE');
-        const sql = `DELETE FROM ${table} WHERE ${userID} = ${request.body[userID]} RETURNING *;`;
-        const queryResult = await pool.query(sql);
-        response.status(200).json( queryResult.rows[0] );
+        let action = 'DELETE ACCOUNT';
+        checkForEmailAndPassword (req.body, action);
+        let user = await assertUserAuth (action, req);
+        const r = await pool.query(`DELETE FROM ${TABLE} WHERE ${EMAIL} = '${req.body[EMAIL]}';`);
+        response.status(200).json( { message: `User Account Deleted: ${req.body[EMAIL]}` } );
     }
     catch (e) { next(e); }
 };

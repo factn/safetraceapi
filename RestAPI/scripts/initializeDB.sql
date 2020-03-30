@@ -2,17 +2,24 @@
 
 -- TODO: check if i need a readonly trigger for serial id's...
 
-DROP TABLE IF EXISTS main_table, users, events CASCADE;
+DROP TABLE IF EXISTS main_table, users, devices, events CASCADE;
 
 CREATE TABLE users (
-  user_id SERIAL PRIMARY KEY, -- user / device id
-  phone_number BIGINT UNIQUE NOT NULL
+  user_id SERIAL PRIMARY KEY,
+  email VARCHAR(128) UNIQUE NOT NULL,
+  password VARCHAR(60) NOT NULL,
+  api_key VARCHAR(60) NOT NULL
+);
+
+CREATE TABLE devices (
+  device_id VARCHAR(60) UNIQUE NOT NULL PRIMARY KEY
 );
 
 CREATE TABLE events (
   event_id SERIAL PRIMARY KEY,
   time TIMESTAMP NOT NULL DEFAULT NOW(),
-  user_id INTEGER NOT NULL,               -- from users table
+
+  device_id VARCHAR(60) NOT NULL,               -- from devices table
   
   row_type INTEGER NOT NULL CONSTRAINT row_type_range_error CHECK (row_type >= 0 AND row_type <= 2),              
   -- [0: GPS] -- [1: BlueTooth] -- [2: Survey]
@@ -26,7 +33,7 @@ CREATE TABLE events (
   CONSTRAINT latitude_not_null_error CHECK (row_type = 0 OR (latitude IS NULL)),
 
   -- Blue Tooth
-  contact_id INTEGER CONSTRAINT contact_id_is_user_id_error CHECK (contact_id != user_id), -- from users table
+  contact_id VARCHAR(60) CONSTRAINT contact_id_is_device_id_error CHECK (contact_id != device_id), -- from devices table
   CONSTRAINT contact_id_null_error CHECK (row_type != 1 OR (contact_id IS NOT NULL)),
   CONSTRAINT contact_id_not_null_error CHECK (row_type = 1 OR (contact_id IS NULL)),
   contact_level NUMERIC,
@@ -42,6 +49,6 @@ CREATE TABLE events (
   CONSTRAINT infection_status_null_error CHECK (row_type != 2 OR (infection_status IS NOT NULL)),
   CONSTRAINT infection_status_not_null_error CHECK (row_type = 2 OR (infection_status IS NULL)),
 
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-  FOREIGN KEY (contact_id) REFERENCES users(user_id) ON DELETE CASCADE
+  FOREIGN KEY (device_id) REFERENCES devices(device_id) ON DELETE CASCADE,
+  FOREIGN KEY (contact_id) REFERENCES devices(device_id) ON DELETE CASCADE
 );
