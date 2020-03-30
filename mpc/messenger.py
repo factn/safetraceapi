@@ -1,23 +1,21 @@
-from multiprocessing import Queue, Process
+class Messenger:
 
-class MockMessenger:
-
-	def __init__(self, t, n, index, queues):
+	def __init__(self, t, n, index, queues, uuid):
 		self.t = t
 		self.n = n
 		self.queues = queues
 		self.index = index
+		self.uuid = uuid
 
-	def broadcast(self, round_n, data):
-		# print(f"{self.index} broadcasting message for round {round_n}")
+	def broadcast(self, msg_type, round_n, data):
 		for i in range(len(self.queues)):
 			if i != self.index-1:
-				self.queues[i].put((round_n, data))
+				self.queues[i].put((uuid, msg_type, round_n, data))
 
-	def send(self, player, round_n, data):
-		self.queues[player-1].put((round_n, data))
+	def send(self, player, msg_type, round_n, data):
+		self.queues[player-1].put((uuid, msg_type, round_n, data))
 
-	def collect(self, round_n, full_quorum=False):
+	def collect(self, msg_type, round_n, full_quorum=False):
 		out = []
 		recv = self.queues[self.index-1]
 		n_resps = self.t
@@ -26,9 +24,10 @@ class MockMessenger:
 		while len(out) < n_resps:
 			if not recv.empty():
 				r = recv.get()
-				if r[0] == round_n:
+				if (self.uuid==r[0]) and (r[2] == round_n):
 					out.append(r[1])
-				elif r[0] > round_n:
+				elif (self.uuid==r[0]) and (r[2] < round_n):
+					pass
+				else:
 					recv.put(r)
-		# print(f"{self.index} collected enough messages for round {round_n}")
 		return out
