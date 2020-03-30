@@ -1,238 +1,198 @@
 '''
     script to test the api endpoints
-
-    USER REGISTRATION:
-    1) register a user with a phone number and receive their user_ids
-    2) register user 2 and 3 with numbers
-    3) retreive user 2's user id via phone number (in case it's lost or something)
-
-    GPS POSTING
-    4) post GPS location data for user 1
-    
-    BLUE TOOTH CONTACT
-    5) simulate user 2 detecting user 3 via Blue tooth
-
-    SURVEY
-    6) simulate user 1 completing a symptoms survey
-
-    USER OPT OUT
-    7) simualte user 3 opting out of program, delete user 
-        (should delete blue tooth contact row)
 '''
 
 from __future__ import print_function
+
+import test_api_helper
 import random
 import requests
 import json
-import os
+
+(unlocker_key, unlocker) = test_api_helper.get_unlocker_keys_to_bypass_rate_limits()
+print (unlocker_key + "/" + unlocker)
+def build_headers (api_key=None):
+    if api_key is None:
+        return { unlocker_key: unlocker }
+    return { 'x-api-key': api_key, unlocker_key: unlocker }
 
 LOCAL = True
 
-
-'''CLEAR THE DATABASE FOR TESTING PURPOSES'''
-print ('\nCLEARING DATABASE:')
-if LOCAL:
-    os.system('cat RestAPI/scripts/initializeDB.sql | psql -d safetrace_api -U safetrace_user')
-else:
-    os.system('cat RestAPI/scripts/initializeDB.sql | heroku pg:psql')
-'''END DATABASE CLEARING'''
-
-'''HELPER FUNCTIONS'''
-def print_element (e, indent, prefix, print_normal):
-    if (e is None):
-        return
-    if (isinstance(e, list)):
-        print_array(e, indent+1, prefix)
-    elif (isinstance(e, dict)):
-        print_obj(e, indent+1, prefix)
-    else:
-        print_normal()
-
-def print_array(a, indent=0, prefix=''):
-    print ('   ' * (indent) + prefix + '[')
-    for e in a:
-        print_element(e, indent, '', lambda: print('   ' * (indent+1) + '{},'.format(str(e))))
-    print ('   ' * (indent) + '],')
-    
-def print_obj (obj, indent=0, prefix=''):
-    print ('   ' * (indent) + prefix + '{')
-    for key, value in obj.items():
-        print_element (value, indent, str(key) + ": ", lambda: print('   ' * (indent+1) + '{}: {},'.format(str(key), str(value))))
-    print ('   ' * (indent) + '},')
-
-def print_obj_simple (obj):
-    print (json.dumps(obj))
-
-'''END HELPER FUNCTIONS'''
-
-
+test_api_helper.clear_database(LOCAL)
 
 if LOCAL:
     base_url = 'http://localhost:3000'
 else:
     base_url = 'https://safetraceapi.herokuapp.com'
 
-base_url += '/api/'
-users_url = base_url + 'users'
-events_url = base_url + 'events'
+users_url = base_url + '/users'
+events_url = base_url + '/api/events'
+devices_url = base_url + '/api/devices'
 
 # SHOWS HOW TO GET ALL DATA FROM A TABLE
-def print_all_table (url, title):
-    print ('\n{}:'.format(title))
-    response = requests.get(url=url, json={}).json()
-    '''
-    response = {
-        rows: an array of json objects containing keys for each column requested 
-                (all columns if no specific columns specified)
-    }
-    '''
+def print_all_events():
+    print ('\nEVENTS:')
+    response = requests.get(url=events_url, json={}, headers=build_headers ()).json()
+    # { rows: an array of objects containing a key/value pair for each column requested (all columns if no columns specified) }
+    
+    assert_response_is_not_error(response)
     rows = response['rows']
     for i in range(len(rows)):
-        print_obj (rows[i])
+        test_api_helper.print_obj (rows[i])
 
-def print_all_users ():
-    print_all_table(users_url, 'USERS')
-    
-def print_all_events():
-    print_all_table(events_url, 'EVENTS')
-    
-'''USER REGISTRATION:'''
-# phone numbers
-user_numbers = [15554443333, 19998887777, 12223334444]
-user_ids = [None, None, None]
+def assert_response_is_not_error (response):
+    assert not 'error' in response, response['error']
 
-print_all_users() # should be empty
+def assert_and_print_response (response):
+    assert_response_is_not_error(response)
+    test_api_helper.print_obj_simple (response)
 
-print ('\nUSER REGISTRATION:')
-for i in range(3):
-    user_registration_body = { 
-        'phone_number': user_numbers[i] 
+dev_email = 'some_dev@site.com'
+dev_password = 'password'
+def register_user ():
+    print ('\nUSER SIGN UP:')
+    # pretend we're an app developer signing up
+    body = { 
+        'email': dev_email,
+        'password': dev_password,
     }
-    response = requests.post(url=users_url, json=user_registration_body).json()
+    response = requests.post(url=users_url, json=body, headers=build_headers()).json()
+    assert_response_is_not_error(response)
+    test_api_helper.print_obj (response)
     '''
     response = {
-        user_id: user_id created for the user
-    }
+        message: Account Created For: some_dev@site.com, save the API Key included in this object,
+        apiKey: 'xxx-xxxxx-xxxx-xxxxxx',
+    },
     '''
-    print_obj_simple (response)
-    user_ids[i] = response['user_id']
+    # get the API Key for the app dev
+    return response['apiKey']
 
-print_all_users()
+api_key = register_user()
+test_api_helper.print_all_users(LOCAL)
 
+def update_user_credentials():
+    print ('\nUSER CREDENTIALS UPDATE:')
+    new_dev_email = 'some_dev2@site.com'
+    new_dev_password = 'password2'
+    body = { 
+        'email': dev_email,
+        'password': dev_password,
+        'newEmail': new_dev_email,
+        'newPassword': new_dev_password,
+    }
+    response = requests.patch(url=users_url, json=body, headers=build_headers()).json()
+    # { "message": "Account Credentials Updated For: some_dev2@site.com" }
+    assert_and_print_response (response)
+    return new_dev_email, new_dev_password
 
-print ('\nRETREIVE USER ID VIA PHONE NUMBER:')
-user_ids[1] = None # 'lose' the user_id
-print (user_ids)
+dev_email, dev_password = update_user_credentials()
+test_api_helper.print_all_users(LOCAL)
 
-# this request body gets the user_id column, for the row where phone_number = user's number
-body = {
-    "columns": "user_id",
-    "query": "phone_number = {}".format(user_numbers[1])
-}
-response = requests.get(url=users_url, json=body).json()
-'''
-response = {
-    rows: array of json objects
-}
-'''
-print_obj_simple (response['rows'][0])
-user_ids[1] = response['rows'][0]['user_id']
-print (user_ids)
+api_key = None #uh oh, lost the api key....
 
-print_all_users()
+def recover_api_key ():
+    print ('\nRECOVER API KEY:')
+    body = { 
+        'email': dev_email,
+        'password': dev_password,
+    }
+    response = requests.get(url=users_url, json=body, headers=build_headers()).json()
+    # { "apiKey": "xxxx-xxx-xxx-xxxx" }
+    assert_and_print_response (response)
+    return response['apiKey']
 
-print ('\nUPDATE UESR PHONE NUMBER VIA ID:')
-params = {
-    'user_id': user_ids[1],
-    'phone_number': 1234
-}
-response = requests.patch(url=users_url, json=params).json()
-'''
-returns the updated user row
-response = {
-    user_id: the user's id,
-    phone_number: updated number
-}
-'''
-print_obj (response)
+api_key = recover_api_key()
 
-print_all_users()
+# phone numbers
+device_ids = [11111111111, 22222222222, 33333333333, 44444444444]
+
+test_api_helper.print_all_devices(LOCAL) # should be empty
+
+def register_first_three_devices ():
+    print ('\nDEVICE REGISTRATION:')
+    for i in range(3):
+        response = requests.post(url=devices_url, json={ 'device_id': device_ids[i] }, headers=build_headers(api_key)).json()
+        # { "message": "Success! Device Registered." }
+        assert_and_print_response (response)
+    
+register_first_three_devices()
+test_api_helper.print_all_devices(LOCAL)
+
+def check_device_registration (expectation, device_id):
+    print ('\nCHECK IF DEVICE REGISTERED ({}):'.format(expectation))
+    response = requests.get(url=devices_url, json={ 'device_id': device_id }, headers=build_headers(api_key)).json()
+    # { registered: boolean whetehr or not registered }
+    assert_and_print_response (response)
+    
+check_device_registration ('TRUE', device_ids[0])
+check_device_registration ('FALSE', device_ids[3])
+
 print_all_events()
 
-'''GPS POSTING'''
+def post_data_row (body):
+    response = requests.post(url=events_url, json=body, headers=build_headers(api_key)).json()
+    # { event_id: the event id generated for the POSTed row }
+    assert_and_print_response (response)
+
 print ('\nPOSTING GPS:')
 # post GPS location data for user 1
-gps_body = {
-    'user_id': user_ids[0],                     # the associated user_id for the event_id
+post_data_row({
+    'device_id': device_ids[0],                 # the associated user_id for the event_id
     'row_type': 0,                              # 0 = GPS data
     'latitude': random.uniform(-90.0, 90.0),    # -90 to 90 float range
     'longitude': random.uniform(-180.0, 180.0), # -180 to 180 float range
-}
-response = requests.post(url=events_url, json=gps_body).json()
-'''
-response = {
-    event_id: the event id generated for the POST
-}
-'''
-print_obj_simple (response)
-
-'''BLUTOOTH POSTING'''
+})
+    
 print ('\nPOSTING BLUTOOTH DATA:')
 # simulate user 2 detecting user 3 via Blue tooth
-bluetooth_body = {
-    'user_id': user_ids[1],                     # the associated user_id for the event_id
+post_data_row({
+    'device_id': device_ids[1],                 # the associated user_id for the event_id
     'row_type': 1,                              # 1 = bluetooth data
-    'contact_id': user_ids[2],                  # other user detected by bluetooth
+    'contact_id': device_ids[2],                # other user detected by bluetooth
     'contact_level': random.uniform(0.0, 1.0),  # float value of the bluetooth signal strength
-}
-response = requests.post(url=events_url, json=bluetooth_body).json()
-print_obj_simple (response)
+})
 
-'''SURVEY POSTING'''
 print ('\nPOSTING SURVEY DATA:')
-
 def random_symptoms ():
     symptoms = ['cough', 'fever', 'nausea', 'fatigue', 'runny nose']
     return ", ".join(random.sample(symptoms, random.randint(1, len(symptoms))))
 
 # simulate user 1 completing a symptoms survey
-survey_body = {
-    'user_id': user_ids[0],                     # the associated user_id for the event_id
+post_data_row({
+    'device_id': device_ids[0],                 # the associated user_id for the event_id
     'row_type': 2,                              # 2 = survey data
     'symptoms': random_symptoms(),              # comma seperated string of symptoms
     'infection_status': random.randint(0, 3),   # integer 0 - 3 [0 opt out] [1 dont know] [2 infected] [3 recovered]
-}
-
-response = requests.post(url=events_url, json=survey_body).json()
-'''
-response = {
-    event_id: the event id generated for the POST
-}
-'''
-
-print_obj_simple (response)
+})
 
 print_all_events()
 
-'''USER OPT OUT'''
-print ('\nUSER OPT OUT:')
-# simualte user 3 opting out of program, delete user 
-    
-delete_body = {
-    "user_id": user_ids[2]
-}
-response = requests.delete(url=users_url, json=delete_body).json()
-'''
-response = {
-    rows: array of json objects representing the users that were deleted
-}
-'''
+def user_opt_out ():
+    print ('\nUSER OPT OUT:')
+    # simualte user 3 opting out of program, delete user 
+    response = requests.delete(url=devices_url, json={ 'device_id': device_ids[2] }, headers=build_headers(api_key)).json()
+    # { "message": "Success! Device Unregistered." }
+    assert_and_print_response (response)    
+    test_api_helper.print_all_devices(LOCAL)
 
-
-print_obj (response)
-
-print_all_users()
+user_opt_out()
 
 print ('\nCHECK FOR BLUTOOTH DATA DELETE:')
 # (should delete blue tooth contact row since it contains data from user 3 who just opted out)
+print_all_events()
+
+def delete_user_account ():
+    print ('\nDELETE USER ACCOUNT:')
+    body = { 
+        'email': dev_email,
+        'password': dev_password,
+    }
+    response = requests.delete(url=users_url, json=body, headers=build_headers()).json()
+    # { "message": "User Account Deleted: some_dev2@site.com" }
+    assert_and_print_response (response)
+
+print ('\nALL TABLES:')
+test_api_helper.print_all_users(LOCAL)
+test_api_helper.print_all_devices(LOCAL)
 print_all_events()
