@@ -201,18 +201,31 @@ class TripleShare:
 		self.b = b
 		self.c = c
 
-def gen_triples(t, n, n_triples):
-	triples = [[] for _ in range(n)]
-	for i in range(n_triples):
-		a = randelement()
-		b = randelement()
-		c = a*b
-		a_shares = Shamir(t, n).share_secret(a)
-		b_shares = Shamir(t, n).share_secret(b)
-		c_shares = Shamir(t, n).share_secret(c)
-		for i in range(n):
-			triples[i].append(TripleShare(a_shares[i], b_shares[i], c_shares[i]))
-	return triples
+##
+## Serialization
+##
+
+def serialize_mul_msg(er_list):
+	return [[int(s1.x), int(s1.y), int(s2.x), int(s2.y)] for s1, s2 in er_list]
+
+def deserialize_mul_msg(flat_list):
+	return [(Share(s[0], s[1]), Share(s[2], s[3])) for s in flat_list]
+
+def serialize_triple_ab_msg(playerABs):
+	playerAs = [[int(a.x), int(a.y)] for a in playerABs[0]]
+	playerBs = [[int(b.x), int(b.y)] for b in playerABs[1]]
+	return [playerAs, playerBs]
+
+def deserialize_triple_ab_msg(flatABs):
+	playerAs = [Share(a[0], a[1]) for a in flatABs[0]]
+	playerBs = [Share(b[0], b[1]) for b in flatABs[1]]
+	return (playerAs, playerBs)
+
+def serialize_triple_c_msg(c_shares):
+	return [[int(s.x), int(s.y)] for s in c_shares]
+
+def deserialize_triple_c_msg(flatShares):
+	return [Share(s[0], s[1]) for s in flatShares]
 
 ##
 ## Helper Math

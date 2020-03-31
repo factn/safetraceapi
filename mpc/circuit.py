@@ -43,7 +43,7 @@ class Circuit:
 				t = triples[0:len(indexes)]
 				triples = triples[len(indexes):]
 				msg = shamir.mul_gates_round_1(x_shares, y_shares, t)
-				messenger.broadcast(i, msg)
+				messenger.broadcast("MUL", i, msg)
 				resps = messenger.collect(i)
 				resps.append(msg)
 				vals = shamir.mul_gates_round_2(x_shares, y_shares, resps, [j.c for j in t])
