@@ -1,8 +1,16 @@
-from node import MPCNode, run_triples_protocol, run_circuit_protocol
+from node import MPCNode
 from multiprocessing import Process, Queue
 from shamir import Shamir
 from triples import gen_triples
 import os, shutil
+
+def test_triples_protocol(node, uuid, queue, batch_size, n_batches):
+	triples = node.run_triples_protocol(uuid, batch_size, n_batches)
+	queue.put(triples)
+
+def test_circuit_protocol(node, uuid, queue, path, inputs, triples):
+	vals = node.run_circuit_protocol(uuid, path, inputs, triples)
+	queue.put(vals)
 
 def triples_consumer(q, t, n):
 	vals = []
@@ -57,7 +65,7 @@ def test_node_triples_protocol():
 	q = Queue()
 	procs = []
 	for node in nodes:
-		p = Process(target=run_triples_protocol, args=(node, 'abc', q, 10, 5))
+		p = Process(target=test_triples_protocol, args=(node, 'abc', q, 10, 5))
 		procs.append(p)
 	for p in procs:
 		p.start()
@@ -113,7 +121,7 @@ def test_node_circuit_protocol():
 	q = Queue()
 	procs = []
 	for i in range(len(nodes)):
-		p = Process(target=run_circuit_protocol, args=(nodes[i], 'abc', q, 'bristol_circuits/add64.txt', shares[i], triples[i]))
+		p = Process(target=test_circuit_protocol, args=(nodes[i], 'abc', q, 'bristol_circuits/add64.txt', shares[i], triples[i]))
 		procs.append(p)
 	for p in procs:
 		p.start()

@@ -3,7 +3,7 @@ from twisted.internet.endpoints import connectProtocol, TCP4ClientEndpoint
 from twisted.internet import reactor
 import json, os
 
-class ServerMPC(Protocol):
+class MPCListener(Protocol):
     
     def __init__(self, directory):
         self.dir = directory
@@ -34,23 +34,23 @@ class ServerMPC(Protocol):
     def connectionLost(self, reason):
         print(self.peer, "disconnected")
 
-class ServerFactory(Factory):
+class MPCFactory(Factory):
 
-    protocol = ServerMPC
+    protocol = MPCListener
 
     def __init__(self, directory):
         self.dir = directory
 
     def buildProtocol(self, *args, **kwargs):
-        protocol = ServerMPC(self.dir)
+        protocol = MPCListener(self.dir)
         return protocol
 
-def runserver(directory, my_port):
-    f = ServerFactory(directory)
+def run_mpc_listener(directory, my_port):
+    f = MPCFactory(directory)
     reactor.listenTCP(my_port, f)
     reactor.run()
 
-class SingleMessage(Protocol):
+class MPCSender(Protocol):
 
     def __init__(self, msg):
         self.msg = msg
@@ -69,5 +69,7 @@ class SingleMessage(Protocol):
 
 def connect_and_send(msg, connect_host, connect_port):
     point = TCP4ClientEndpoint(reactor, connect_host, connect_port)
-    d = connectProtocol(point, SingleMessage(msg))
+    d = connectProtocol(point, MPCSender(msg))
     reactor.run()
+
+

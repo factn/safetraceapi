@@ -1,4 +1,4 @@
-from p2p import runserver
+from p2p import run_mpc_listener
 from multiprocessing import Process
 from messenger import Messenger
 from triples import TripleGeneration
@@ -14,7 +14,7 @@ class MPCNode:
 		self.index = index
 		self.port = port
 		self.dir = directory
-		self.server = Process(target=runserver, args=(self.dir, self.port))
+		self.server = Process(target=run_mpc_listener, args=(self.dir, self.port))
 
 	def start(self):
 		self.server.start()
@@ -42,13 +42,3 @@ class MPCNode:
 				raise ValueError("bad inputs")
 		c = Circuit(path, itypes)
 		return c.evaluate(inputs, shamir=s, messenger=m, triples=triples)
-
-def run_triples_protocol(node, uuid, queue, batch_size, n_batches):
-	triples = node.run_triples_protocol(uuid, batch_size, n_batches)
-	queue.put(triples)
-
-def run_circuit_protocol(node, uuid, queue, path, inputs, triples):
-	vals = node.run_circuit_protocol(uuid, path, inputs, triples)
-	queue.put(vals)
-
-
