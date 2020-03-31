@@ -201,19 +201,6 @@ class TripleShare:
 		self.b = b
 		self.c = c
 
-def gen_triples(t, n, n_triples):
-	triples = [[] for _ in range(n)]
-	for i in range(n_triples):
-		a = randelement()
-		b = randelement()
-		c = a*b
-		a_shares = Shamir(t, n).share_secret(a)
-		b_shares = Shamir(t, n).share_secret(b)
-		c_shares = Shamir(t, n).share_secret(c)
-		for i in range(n):
-			triples[i].append(TripleShare(a_shares[i], b_shares[i], c_shares[i]))
-	return triples
-
 ##
 ## Serialization
 ##

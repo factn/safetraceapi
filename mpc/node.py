@@ -1,46 +1,54 @@
-from p2p import runclient, runserver
-from circuit import Circuit
-from multiprocessing import Process, Queue
-from triple_gen import TripleGeneration
-from shamir import Shamir
+from p2p import runserver
+from multiprocessing import Process
 from messenger import Messenger
+from triples import TripleGeneration
+from circuit import Circuit
+from shamir import Shamir, Share
 
 class MPCNode:
 
-	def __init__(self, t, n, port, idx2peer):
+	def __init__(self, t, n, index, port, directory, idx2peer):
 		self.t = t
 		self.n = n
-		self.shamir = Shamir(t, n)
 		self.idx2peer = idx2peer
-		self.index = None
-		self.queues = [Queue() for _ in range(self.n)]
-		self.server_process = None
-		self.client_processes = []
-		for k, v in self.idx2peer.items():
-			if v == None:
-				self.index = k
-				self.server_process = Process(target=runserver, args=(self.queues[k-1], port))
-			else:
-				p = Process(target=runclient, args=(self.queues[k-1], v[0], v[1]))
-				self.client_processes.append(p)				
-		self.server_process.start()
+		self.index = index
+		self.port = port
+		self.dir = directory
+		self.server = Process(target=runserver, args=(self.dir, self.port))
 
-	def start_clients(self):
-		for p in self.client_processes:
-			p.start()
-
-	def stop_clients(self):
-		for p in self.client_processes:
-			p.terminate()
+	def start(self):
+		self.server.start()
 
 	def stop(self):
-		self.server_process.terminate()
-		for q in self.queues:
-			q.close()
-			q.join_thread()
+		self.server.terminate()
 
-	def run_triples_protocol(self, uuid, batch_size=10, n_batches=2):
-		messenger = Messenger(t, n, self.index, self.queues, uuid)
-		tg = TripleGeneration(self.index, self.shamir, messenger, batch_size=batch_size, n_batches=n_batches)
-		tg.run()
-		return tg.triples
+	def run_triples_protocol(self, uuid, batch_size, n_batches):
+		m = Messenger(self.t, self.n, self.index, self.dir, self.idx2peer, uuid)
+		s = Shamir(self.t, self.n)
+		t = TripleGeneration(self.index, s, m, batch_size=batch_size, n_batches=n_batches)
+		t.run()
+		return t.triples
+
+	def run_circuit_protocol(self, uuid, path, inputs, triples):
+		m = Messenger(self.t, self.n, self.index, self.dir, self.idx2peer, uuid)
+		s = Shamir(self.t, self.n)
+		itypes = []
+		for i in inputs:
+			if i in [0,1]:
+				itypes.append('V')
+			elif type(i) == Share:
+				itypes.append('S')
+			else:
+				raise ValueError("bad inputs")
+		c = Circuit(path, itypes)
+		return c.evaluate(inputs, shamir=s, messenger=m, triples=triples)
+
+def run_triples_protocol(node, uuid, queue, batch_size, n_batches):
+	triples = node.run_triples_protocol(uuid, batch_size, n_batches)
+	queue.put(triples)
+
+def run_circuit_protocol(node, uuid, queue, path, inputs, triples):
+	vals = node.run_circuit_protocol(uuid, path, inputs, triples)
+	queue.put(vals)
+
+

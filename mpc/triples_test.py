@@ -1,6 +1,6 @@
 from shamir import Shamir
-from messenger import Messenger
-from triple_gen import TripleGeneration
+from messenger import MockMessenger
+from triples import TripleGeneration
 from multiprocessing import Queue, Process
 import time
 from threading import Thread
@@ -23,12 +23,12 @@ def consumer(mq, t, n, processes):
 
 def run_triplegen_process(t, n, index, queues, main_queue, batch_size, n_batches):
     shamir = Shamir(t, n)
-    messenger = Messenger(t, n, index, queues, "")
+    messenger = MockMessenger(t, n, index, queues, "")
     tg = TripleGeneration(index, shamir, messenger, batch_size=batch_size, n_batches=n_batches)
     tg.run()
     main_queue.put(tg.triples)
 
-def test_triple_generation(t, n, batch_size, n_batches):
+def test_tripleseration(t, n, batch_size, n_batches):
     mq = Queue()
     queues = [Queue() for _ in range(n)]
     processes = []
@@ -53,8 +53,8 @@ def test_triple_generation(t, n, batch_size, n_batches):
 
 if __name__ == "__main__":
 	print("--Batch Size: 1000, Batches: 1--")
-	test_triple_generation(2, 5, 1000, 1)
+	test_tripleseration(2, 5, 1000, 1)
 	print("--Batch Size: 100, Batches: 10--")
-	test_triple_generation(2, 5, 100, 10)
+	test_tripleseration(2, 5, 100, 10)
 	print("--Batch Size: 1000, Batches: 5--")
-	test_triple_generation(2, 5, 1000, 5)
+	test_tripleseration(2, 5, 1000, 5)
