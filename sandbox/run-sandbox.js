@@ -37,12 +37,13 @@ async function runSandbox (req, res, next) {
         
         let computationPath = sandboxDir + file.name;
         
-        console.log('Caching File...');
+        console.log('Caching File... :: ' + computationPath);
         await file.mv(computationPath);
 
         console.log('Adjusting Primary Working Directory...');
         let pwd = (child_process.execSync(`pwd`) + sandboxDir.substring(1)).replace('\n', '');
-        
+        console.log('PWD: ' + pwd);
+
         console.log('Creating Output Streams...');
         let resultsPrefix = '.' + computationPath.substring(1).replace('.', '_');
         let resultsPath = resultsPrefix + "_ComputationResult.txt";
@@ -56,10 +57,31 @@ async function runSandbox (req, res, next) {
 
         logStream = fs.createWriteStream(logsPath);
 
-        console.log('Granting Permissions...');
+        console.log('Granting Permissions... :: ' + computationPath);
         // grant permissions
         child_process.execSync(`chmod +x ${computationPath}`);
         
+        await new Promise(resolve => setTimeout(resolve, 1000 * 1));
+
+        let path = './';
+        fs.readdir(path, function(err, items) {
+            console.log('PATH: ' + path);
+            
+            console.log(items);
+            for (var i=0; i<items.length; i++) {
+                console.log(items[i]);
+            }
+        });
+        path = sandboxDir;
+        fs.readdir(path, function(err, items) {
+            console.log('PATH: ' + path);
+            console.log(items);
+            for (var i=0; i<items.length; i++) {
+                console.log(items[i]);
+            }
+        });
+
+
         console.log('Running : "' + file.name + '"...');
         let stdOut, stdErr, err = null;
         let cp = child_process.execFile(
@@ -88,7 +110,7 @@ async function runSandbox (req, res, next) {
                 writeLogsSection ('ERRORS', err);
                 writeLogsSection ('STDOUT', stdOut);
                 writeLogsSection ('STDERR', stdErr);
-                console.log('Dont Writing Logs, Ending Stream...');
+                console.log('Done Writing Logs, Ending Stream...');
                 logStream.end();
                 logStream = resultStream = null;
                 
