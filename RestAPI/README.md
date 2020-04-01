@@ -24,7 +24,7 @@
     * [Registering A Device](#register-device)
     * [Unregistering A Device](#unregister-device)
     * [Checking If A Device Is Registered](#check-device)
-- **[Client Accounts](#events)**
+- **[Events](#events)**
     * [Supplying Event Data](#supply-data)
     * [Getting Event Data](#get-data)
 <hr>
