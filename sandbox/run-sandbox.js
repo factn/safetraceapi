@@ -35,7 +35,7 @@ async function runSandbox (req, res, next) {
         if (!file)
             throw new Error ('No File Specified With Key "file"');
         
-        let items = await fs.readdir('./');
+        let items = await fs.readdir('./', () => {});
         console.log('PATH (BEFORE UPLOAD): ' + './');
         console.log(items);
                     
@@ -44,11 +44,11 @@ async function runSandbox (req, res, next) {
         console.log('Caching File... :: ' + computationPath);
         await file.mv(computationPath);
 
-        items = await fs.readdir('./');
+        items = await fs.readdir('./', () => {});
         console.log('PATH: ' + './');
         console.log(items);
             
-        items = await fs.readdir(sandboxDir);
+        items = await fs.readdir(sandboxDir, () => {});
         console.log('PATH: ' + sandboxDir);
         console.log(items);
             
