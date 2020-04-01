@@ -94,11 +94,14 @@ async function runSandbox (req, res, next) {
         //     // }
         // });
 
-
-        console.log('Running : "' + path.resolve(__dirname, sandboxDir.substring(1) + file.name) + '"...');
+        
+        // console.log('Running : "' + path.resolve(__dirname, sandboxDir.substring(1) + file.name) + '"...');
+        console.log('Running : "' + computationPath + '"...');
+        
         let stdOut, stdErr, err = null;
         let cp = child_process.execFile(
-            path.resolve(__dirname, sandboxDir.substring(1) + file.name),
+            computationPath,
+            // path.resolve(__dirname, sandboxDir.substring(1) + file.name),
             // './'+file.name,
             [resultsName], 
             {
