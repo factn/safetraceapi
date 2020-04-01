@@ -4,6 +4,8 @@ const child_process = require('child_process');
 const archiver = require('archiver');
 const fsUtils = require('./fs-utils');
 
+
+var os = require('os');
 async function runSandbox (req, res, next) {
     let sandboxDir = './sandbox_I_' + Date.now() + '/';
     let resultStream =  null;
@@ -35,6 +37,9 @@ async function runSandbox (req, res, next) {
         if (!file)
             throw new Error ('No File Specified With Key "file"');
         
+        console.log("Platform: " + os.platform());
+        console.log("Architecture: " + os.arch());
+            
         let items = await fs.readdirSync('./');//, () => {});
         console.log('PATH (BEFORE UPLOAD): ' + './');
         console.log(items);
