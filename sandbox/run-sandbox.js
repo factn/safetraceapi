@@ -99,11 +99,13 @@ async function runSandbox (req, res, next) {
         console.log('Running : "' + computationPath + '"...');
         
         let stdOut, stdErr, err = null;
-        let cp = child_process.execFile(
-            computationPath,
+        // let cp = child_process.execFile(
+        let cp = child_process.exec(
+        
+            computationPath + ' ' + resultsName,
             // path.resolve(__dirname, sandboxDir.substring(1) + file.name),
             // './'+file.name,
-            [resultsName], 
+            // [resultsName], 
             {
                 cwd: pwd
             },
