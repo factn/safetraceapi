@@ -1,6 +1,7 @@
 &#x1F534;
+>#
 >**Disclaimer:** While we here at SafetraceAPI are committed to implementing encryption for data storage and retrieval, and MPC for secure computations, the iteration of the API outlined below is **NOT** encrypted, and will be used for testing data acquisition and visualization, while it is still a public and open source API, we suggest not storing any real life data yet!
-
+>#
 &#x1F534;
 
 # API Docs
@@ -20,6 +21,7 @@
     * [Recovering Your API Key](#recover-key)
     * [Updating Account Credentials](#update-account)
     * [Deleting Your Account](#delete-account)
+- **[Using Your API Key](#using-key)**
 - **[Devices](#devices)**
     * [Registering A Device](#register-device)
     * [Unregistering A Device](#unregister-device)
@@ -103,7 +105,9 @@ In order to use any API endpoints, you must register for a Safetrace account and
     'newPassword': '<new-password>',    # (OPTIONAL)
 }
 ```
->- You must supply either a `newEmail` or `newPassword`
+>#
+>You must supply either a `newEmail` or `newPassword`
+>#
 
 ***Response:***
 ```yaml
@@ -148,6 +152,13 @@ In order to use any API endpoints, you must register for a Safetrace account and
     }' \
 <hr>
 
+<a name="using-key"></a>
+# Using Your API Key
+All HTTP requests to the API must include your API key in the header, under header key: `x-api-key`.
+    
+    x-api-key: <your api key>
+<hr>
+
 <a name="devices"></a>
 # Devices
 
@@ -177,8 +188,9 @@ When a Resource Owner gives consent to be registered and supply Safetrace with l
 <a name="unregister-device"></a>
 ## Unregistering A Device:
 When a Resource Owner gives revokes consent to supply Safetrace with location and survey data, their device must be unregistered.
+>#
 >When a device is unregistered, all rows in the Events Table that have any data concerning that device are deleted.
-
+>#
 **Method** : `DELETE`
 
 ***Request Body:***
@@ -235,12 +247,16 @@ When a Resource Owner gives revokes consent to supply Safetrace with location an
 ## Supplying Event Data:
 
 **Method** : `POST`
+>#
 >Attempts to `POST` data to the Events endpoints with a `device_id` that is not registered in the database will be rejected.
+>#
 
+>#
 >Every `POST` request body must include a `row_type` key, with an integer corresponding to the types of data that an be posted where:
 >- *0 = GPS Data*
 >- *1 = BlueTooth Data*
 >- *2 = Survey Data*
+>#
 
 ***[GPS Data] Request Body:***
 ```yaml
@@ -252,21 +268,25 @@ When a Resource Owner gives revokes consent to supply Safetrace with location an
 }
 ```
 ***[BlueTooth Data] Request Body:***
->The `contact_id` key must be a user ID found in the Users Table.  If it matches the `user_id` key, an error will be thrown.
+>#
+>The `contact_id` key must be a registered Device ID.  If it matches the `device_id` key, an error will be thrown.
+>#
 ```yaml
 {
     "device_id": 0,           
     "row_type": 1,          
-    "contact_id": 1,        # other user detected 
+    "contact_id": 1,        # other device detected 
     "contact_level": .5,    # float value of the bluetooth signal strength
 }
 ```
 ***[Survey Data] Request Body:***
->The `infection_status` key is an integer in the range 0 - 3 describing the test status of the user where:
->- *0 = User doesn't want to specify*
->- *1 = User doesn't know*
->- *2 = User is infected*
->- *3 = User is recovered*
+>#
+>The `infection_status` key is an integer in the range 0 - 3 describing the test status of the Resource Owner where:
+>- *0 = Resource Owner doesn't want to specify*
+>- *1 = Resource Owner doesn't know*
+>- *2 = Resource Owner is infected*
+>- *3 = Resource Owner is recovered*
+>#
 ```yaml
 {
     "device_id": 0, 
@@ -295,8 +315,10 @@ When a Resource Owner gives revokes consent to supply Safetrace with location an
     "query": "row_type = 0"         # (OPTIONAL) an SQL query
 }
 ```
+>#
 >- if `columns` is ommited, all columns are returned per row
 >- if `query` is ommited, all rows are returned
+>#
 
 ***Response:***
 ```yaml
