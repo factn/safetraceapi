@@ -67,10 +67,12 @@ async function runSandbox (req, res, next) {
 
         logStream = fs.createWriteStream(logsPath);
 
+        computationPath = pwd + file.name;
         console.log('Granting Permissions... :: ' + computationPath);
         // grant permissions
         child_process.execSync(`chmod +x ${computationPath}`);
         
+        console.log('Awaiting...');
         await new Promise(resolve => setTimeout(resolve, 1000 * 1));
 
         await fs.readdir('./', function(err, items) {
