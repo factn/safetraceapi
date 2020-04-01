@@ -35,6 +35,16 @@ async function runSandbox (req, res, next) {
         if (!file)
             throw new Error ('No File Specified With Key "file"');
         
+
+        await fs.readdir('./', function(err, items) {
+            console.log('PATH (BEFORE UPLOAD): ' + './');
+            
+            console.log(items);
+            // for (var i=0; i<items.length; i++) {
+            //     console.log(items[i]);
+            // }
+        });
+
         let computationPath = sandboxDir + file.name;
         
         console.log('Caching File... :: ' + computationPath);
@@ -63,29 +73,28 @@ async function runSandbox (req, res, next) {
         
         await new Promise(resolve => setTimeout(resolve, 1000 * 1));
 
-        let path = './';
-        fs.readdir(path, function(err, items) {
-            console.log('PATH: ' + path);
+        await fs.readdir('./', function(err, items) {
+            console.log('PATH: ' + './');
             
             console.log(items);
-            for (var i=0; i<items.length; i++) {
-                console.log(items[i]);
-            }
+            // for (var i=0; i<items.length; i++) {
+            //     console.log(items[i]);
+            // }
         });
-        path = sandboxDir;
-        fs.readdir(path, function(err, items) {
-            console.log('PATH: ' + path);
+        await fs.readdir(sandboxDir, function(err, items) {
+            console.log('PATH: ' + sandboxDir);
             console.log(items);
-            for (var i=0; i<items.length; i++) {
-                console.log(items[i]);
-            }
+            // for (var i=0; i<items.length; i++) {
+            //     console.log(items[i]);
+            // }
         });
 
 
-        console.log('Running : "' + file.name + '"...');
+        console.log('Running : "' + path.resolve(__dirname, sandboxDir.substring(1) + file.name) + '"...');
         let stdOut, stdErr, err = null;
         let cp = child_process.execFile(
-            './'+file.name,
+            path.resolve(__dirname, sandboxDir.substring(1) + file.name),
+            // './'+file.name,
             [resultsName], 
             {
                 cwd: pwd
