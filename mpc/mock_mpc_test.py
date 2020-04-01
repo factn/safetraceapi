@@ -4,7 +4,6 @@ from triples import gen_triples
 from messenger import MockMessenger
 from multiprocessing import Queue, Process
 import time
-from threading import Thread
 
 def consumer(mq, n, result, t, processes, reflect):
     vals = []
@@ -15,9 +14,6 @@ def consumer(mq, n, result, t, processes, reflect):
     if reflect:
         reconstructed = reconstructed[int(len(reconstructed)/2):]+reconstructed[:int(len(reconstructed)/2)]
     assert eval('0b'+reconstructed) == eval('0b'+result), "result incorrect"
-    mq.close()
-    for p in processes:
-        p.terminate()
 
 def run_circuit_process(t, n, c_path, index, queues, main_queue, inputs, triples):
     shamir = Shamir(t, n)
@@ -41,13 +37,15 @@ def test_mpc(t, n, c_path, n_triples, inputs, result, reflect=False):
     start = time.time()
     for p in processes:
         p.start()
-    t1 = Thread(target=consumer, args=(mq, n, result, t, processes, reflect))
+    t1 = Process(target=consumer, args=(mq, n, result, t, processes, reflect))
     t1.start()
     for p in processes:
-        if p.is_alive():
-            p.join()
-    t1.join(n)
+        p.join()
+    t1.join()
     print(f"time: {round(time.time()-start, 4)} seconds")
+    while not mq.empty():
+        mq.get()
+    mq.close()
     for q in queues:
         q.close()
         q.join_thread()

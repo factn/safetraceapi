@@ -202,32 +202,6 @@ class TripleShare:
 		self.c = c
 
 ##
-## Serialization
-##
-
-def serialize_mul_msg(er_list):
-	return [[int(s1.x), int(s1.y), int(s2.x), int(s2.y)] for s1, s2 in er_list]
-
-def deserialize_mul_msg(flat_list):
-	return [(Share(s[0], s[1]), Share(s[2], s[3])) for s in flat_list]
-
-def serialize_triple_ab_msg(playerABs):
-	playerAs = [[int(a.x), int(a.y)] for a in playerABs[0]]
-	playerBs = [[int(b.x), int(b.y)] for b in playerABs[1]]
-	return [playerAs, playerBs]
-
-def deserialize_triple_ab_msg(flatABs):
-	playerAs = [Share(a[0], a[1]) for a in flatABs[0]]
-	playerBs = [Share(b[0], b[1]) for b in flatABs[1]]
-	return (playerAs, playerBs)
-
-def serialize_triple_c_msg(c_shares):
-	return [[int(s.x), int(s.y)] for s in c_shares]
-
-def deserialize_triple_c_msg(flatShares):
-	return [Share(s[0], s[1]) for s in flatShares]
-
-##
 ## Helper Math
 ##
 

@@ -3,7 +3,6 @@ from messenger import MockMessenger
 from triples import TripleGeneration
 from multiprocessing import Queue, Process
 import time
-from threading import Thread
 
 def consumer(mq, t, n, processes):
     vals = []
@@ -38,12 +37,12 @@ def test_triple_generation(t, n, batch_size, n_batches):
     start = time.time()
     for p in processes:
         p.start()
-    t1 = Thread(target=consumer, args=(mq, t, n, processes))
+    t1 = Process(target=consumer, args=(mq, t, n, processes))
     t1.start()
     for p in processes:
         if p.is_alive():
             p.join()
-    t1.join(n)
+    t1.join()
     print(f"time: {round(time.time()-start, 4)} seconds")
     for q in queues:
         q.close()
