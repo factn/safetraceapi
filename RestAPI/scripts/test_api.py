@@ -16,7 +16,7 @@ def build_headers (api_key=None):
         return { unlocker_key: unlocker }
     return { 'x-api-key': api_key, unlocker_key: unlocker }
 
-LOCAL = True
+LOCAL = False
 
 test_api_helper.clear_database(LOCAL)
 

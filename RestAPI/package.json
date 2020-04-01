@@ -5,7 +5,8 @@
   "main": "app.local.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.local.js"
+    "start": "nodemon app.local.js",
+    "deploy": "cd ..; git subtree push --prefix RestAPI heroku-st-api master || true; cd RestAPI"
   },
   "author": "Andres Gomez",
   "license": "ISC",
