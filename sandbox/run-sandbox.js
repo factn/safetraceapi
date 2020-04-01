@@ -35,20 +35,23 @@ async function runSandbox (req, res, next) {
         if (!file)
             throw new Error ('No File Specified With Key "file"');
         
-
-        await fs.readdir('./', function(err, items) {
-            console.log('PATH (BEFORE UPLOAD): ' + './');
-            
-            console.log(items);
-            // for (var i=0; i<items.length; i++) {
-            //     console.log(items[i]);
-            // }
-        });
-
+        let items = await fs.readdir('./');
+        console.log('PATH (BEFORE UPLOAD): ' + './');
+        console.log(items);
+                    
         let computationPath = sandboxDir + file.name;
         
         console.log('Caching File... :: ' + computationPath);
         await file.mv(computationPath);
+
+        items = await fs.readdir('./');
+        console.log('PATH: ' + './');
+        console.log(items);
+            
+        items = await fs.readdir(sandboxDir);
+        console.log('PATH: ' + sandboxDir);
+        console.log(items);
+            
 
         console.log('Adjusting Primary Working Directory...');
         let pwd = (child_process.execSync(`pwd`) + sandboxDir.substring(1)).replace('\n', '');
@@ -75,21 +78,21 @@ async function runSandbox (req, res, next) {
         console.log('Awaiting...');
         await new Promise(resolve => setTimeout(resolve, 1000 * 1));
 
-        await fs.readdir('./', function(err, items) {
-            console.log('PATH: ' + './');
+        // await fs.readdir('./', function(err, items) {
+        //     console.log('PATH: ' + './');
             
-            console.log(items);
-            // for (var i=0; i<items.length; i++) {
-            //     console.log(items[i]);
-            // }
-        });
-        await fs.readdir(sandboxDir, function(err, items) {
-            console.log('PATH: ' + sandboxDir);
-            console.log(items);
-            // for (var i=0; i<items.length; i++) {
-            //     console.log(items[i]);
-            // }
-        });
+        //     console.log(items);
+        //     // for (var i=0; i<items.length; i++) {
+        //     //     console.log(items[i]);
+        //     // }
+        // });
+        // await fs.readdir(sandboxDir, function(err, items) {
+        //     console.log('PATH: ' + sandboxDir);
+        //     console.log(items);
+        //     // for (var i=0; i<items.length; i++) {
+        //     //     console.log(items[i]);
+        //     // }
+        // });
 
 
         console.log('Running : "' + path.resolve(__dirname, sandboxDir.substring(1) + file.name) + '"...');
