@@ -30,9 +30,9 @@ class Circuit:
 			for gate in layer:
 				if not gate[1]:
 					if gate[2][-1] == 'XOR':
-						tape[gate[0]] = self.XOR(tape[gate[2][-2]], tape[gate[2][-3]])
+						tape[gate[0]] = self.__XOR(tape[gate[2][-2]], tape[gate[2][-3]])
 					elif gate[2][-1] == 'AND':
-						tape[gate[0]] = self.AND(tape[gate[2][-2]], tape[gate[2][-3]])
+						tape[gate[0]] = self.__AND(tape[gate[2][-2]], tape[gate[2][-3]])
 					else:
 						raise ValueError(f"Improperly formatted gate: {gate}")
 				else:
@@ -51,7 +51,7 @@ class Circuit:
 					tape[indexes[k]] = vals[k]
 		return [tape[k] for k in self.output_indexes]
 
-	def XOR(self, a, b):
+	def __XOR(self, a, b):
 		if (type(a) == Share) and (type(b) == Share):
 			return a+b
 		elif (a in [0,1]) and (b in [0,1]):
@@ -63,7 +63,7 @@ class Circuit:
 		else:
 			raise ValueError(f"Inputs do not match XOR gate: {(a, type(a)), (b, type(b))}")
 
-	def AND(self, a, b):
+	def __AND(self, a, b):
 		if (a in [0,1]) and (b in [0,1]):
 			return a&b
 		elif (a in [0,1]) and (type(b) == Share):

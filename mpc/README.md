@@ -7,7 +7,7 @@
 This Multi Party Computation implementation relies on three major classes:
 
 1. `Circuit` class: A boolean circuit evaluator (see: circuit.py)
-2. `MockMessenger` class: P2P communications layer, currently "mocked" with threads (see: messenger.py)
+2. `Messenger` class: P2P communications layer, currently "mocked" with threads (see: messenger.py)
 3. `Shamir` class: Shamir Secret Sharing over field GF256 (see: shamir.py)
 
 ## Circuits
@@ -23,7 +23,7 @@ A messenger class is only necessary if communication is necessary given the circ
 
 ## Messengers
 
-Currently only the simple `MockMessenger` is implemented which suffices simply for testing: each party is modeled as a thread on a single machine and a `Queue` is used to "pass messages" between threads.
+Currently only the simple `Messenger` is implemented which suffices simply for testing: each party is modeled as a thread on a single machine and a `Queue` is used to "pass messages" between threads.
 
 For MPC in a truly distributed setting, implement a `Messenger` class where messages are sent and received over TLS.
 
