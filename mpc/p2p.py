@@ -42,12 +42,18 @@ def receive_to_queue(port, queue):
 		
 	server_socket.close()
 
-def send_from_queue(host, port, queue):
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.connect((host, port))
+def send_from_queue(peer2q):
+	sockets = []
+	queues = []
+	for k, v in peer2q.items():
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s.connect((k[0], k[1]))
+		sockets.append(s)
+		queues.append(v)
 	while True:
-		if not queue.empty():
-			msg = queue.get()
-			v = json.dumps(msg)
-			s.sendall(str.encode(v+'\n'))
+		for i in range(len(queues)):
+			if not queues[i].empty():
+				msg = queues[i].get()
+				v = json.dumps(msg)
+				sockets[i].sendall(str.encode(v+'\n'))
 	s.close()

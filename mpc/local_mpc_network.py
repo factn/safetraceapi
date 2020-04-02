@@ -16,7 +16,7 @@ if __name__ == '__main__':
 		for node in nodes:
 			node.start_mpc_server()
 		for node in nodes:
-			node.start_mpc_clients()
+			node.start_mpc_client()
 		procs = []
 		for node in nodes:
 			procs.append(Process(target=run_node, args=(node,)))
@@ -26,7 +26,7 @@ if __name__ == '__main__':
 			p.join()
 	finally:
 		for node in nodes:
-			node.stop_mpc_clients()
+			node.stop_mpc_client()
 		for node in nodes:
 			node.stop_mpc_server()
 

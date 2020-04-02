@@ -21,12 +21,14 @@ class Node:
 		if self.circuit_dir == None:
 			self.circuit_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bristol_circuits')
 		self.mpc_server = None
+		peer2q = {}
 		for i in range(1, self.n+1):
 			host, port = self.idx2peer[i]
 			if i==self.index:
 				self.mpc_server = Process(target=receive_to_queue, args=(port, self.queues[i-1]))
 			else:
-				self.mpc_clients.append(Process(target=send_from_queue, args=(host, port, self.queues[i-1])))
+				peer2q[self.idx2peer[i]] = self.queues[i-1]
+		self.mpc_client = Process(target=send_from_queue, args=(peer2q,))
 
 	def start_mpc_server(self):
 		if not self.mpc_server.is_alive():
@@ -45,24 +47,21 @@ class Node:
 			pass
 
 
-	def start_mpc_clients(self):
-		for c in self.mpc_clients:
-			c.start()
+	def start_mpc_client(self):
+		if not self.mpc_client.is_alive():
+			self.mpc_client.start()
 
-	def stop_mpc_clients(self):
-		for c in self.mpc_clients:
-			if c.is_alive():
-				c.terminate()
-		for i in range(len(self.queues)):
-			if i != self.index-1:
-				try:
-					q = self.queues[i]
-					while not q.empty():
-						q.get()
-					q.close()
-					q.join_thread()
-				except:
-					pass		
+	def stop_mpc_client(self):
+		if self.mpc_client.is_alive():
+			self.mpc_client.terminate()
+		for q in self.queues:
+			try:
+				while not q.empty():
+					q.get()
+				q.close()
+				q.join_thread()
+			except:
+				pass	
 
 	def start(self):
 		connections = []
@@ -138,7 +137,6 @@ class Node:
 							tg = TripleGeneration(self.index, Shamir(self.t, self.n), m, batch_size=1000, n_batches=6)
 							tg.run()
 							queued_intersections[msg['uuid']] = (inputs, tg.triples, sock)
-							# client disconnected, so remove from socket list
 					except:
 						print(f'Client disconnected')
 						sock.close()

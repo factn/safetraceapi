@@ -25,7 +25,7 @@ $ python3 demo.py 55555 abc
 
 The final string must be a matching unique reference id so the servers know that these two requests go together. The servers will compute the "intersection" between the two integers without ever decrypting or leaking any information about these integers (though the connections should be SSL and are simple unencrypted TCP for now, which could potentially leak information).
 
-The servers are not very sophisticated so I won't be surprised if some requests get stuck (though you'll certainly wait forever regardless if the second client never sends a request with a matching string argument). ALso they are on free tier AWS and there are three servers on one VM which means performance is vastly diminished.
+The servers are not very sophisticated so I won't be surprised if some requests get stuck (though you'll certainly wait forever regardless if the second client never sends a request with a matching string argument). ALso they are on free tier AWS and all three share one VM which means performance is certainly diminished.
 
 ## Package Overview
 
