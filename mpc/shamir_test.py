@@ -122,4 +122,5 @@ if __name__ == "__main__":
 	test_reconstruction()
 	test_secure_addition()
 	test_secure_multiplication()
+	test_triple_creation(1, 3, 500)
 	print("PASS")

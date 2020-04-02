@@ -19,14 +19,10 @@ def deserialize_mul_msg(flat_list):
 	return [(Share(s[0], s[1]), Share(s[2], s[3])) for s in flat_list]
 
 def serialize_triple_ab_msg(playerABs):
-	playerAs = [[int(a.x), int(a.y)] for a in playerABs[0]]
-	playerBs = [[int(b.x), int(b.y)] for b in playerABs[1]]
-	return [playerAs, playerBs]
+	return [[int(i[0].x), int(i[0].y), int(i[1].x), int(i[1].y)] for i in playerABs]
 
 def deserialize_triple_ab_msg(flatABs):
-	playerAs = [Share(a[0], a[1]) for a in flatABs[0]]
-	playerBs = [Share(b[0], b[1]) for b in flatABs[1]]
-	return (playerAs, playerBs)
+	return [[Share(i[0], i[1]), Share(i[2], i[3])] for i in flatABs]
 
 def serialize_triple_c_msg(c_shares):
 	return serialize_shares(c_shares)

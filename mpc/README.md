@@ -2,13 +2,40 @@
 
 [What is Secure Multi Party Computation?](https://en.wikipedia.org/wiki/Secure_multi-party_computation)
 
+## Demo SafetraceMPC
+
+### Local demo
+
+To locally demo/test the package open two terminals.
+
+In the first terminal enter the safetraceapi/mpc directory and run `python3 local_mpc_network.py`. This spawns a 3 node MPC network on your local machine.
+In the second terminal enter the safetraceapi/mpc directory and run `python3 mpc_test.py`. This spawns two clients which both send a request to the MPC servers with a secret shared integer as input. The MPC servers compute whether or not the integers "intersect" (are within a range of 50) without ever revealing the two integers, and return the results which the clients can locally 'decrypt'
+
+### Live demo
+
+We've set up a simple demo on a virtual machine partitioned into 3 separate servers. Enter the safetraceapi/mpc directory and run demo.py choosing an integer and a string as command line arguments. Then have a friend (or you in a separate shell) do the same. The two calls should look like this:
+
+```
+// request 1
+$ python3 demo.py 1234 abc
+
+// request 2
+$ python3 demo.py 55555 abc
+```
+
+The final string must be a matching unique reference id so the servers know that these two requests go together. The servers will compute the "intersection" between the two integers without ever decrypting or leaking any information about these integers (though the connections should be SSL and are simple unencrypted TCP for now, which could potentially leak information).
+
+The servers are not very sophisticated so I won't be surprised if some requests get stuck (though you'll certainly wait forever regardless if the second client never sends a request with a matching string argument). ALso they are on free tier AWS and all three share one VM which means performance is certainly diminished.
+
 ## Package Overview
 
-This Multi Party Computation implementation relies on three major classes:
+This Multi Party Computation implementation relies on a number of classes:
 
-1. `Circuit` class: A boolean circuit evaluator (see: circuit.py)
-2. `MockMessenger` class: P2P communications layer, currently "mocked" with threads (see: messenger.py)
-3. `Shamir` class: Shamir Secret Sharing over field GF256 (see: shamir.py)
+1. `Node` class: An MPC node with a predefied set of peers (see: node.py)
+2. `Client` class: A client that can query the MPC nodes with MPC operations (see: client.py)
+3. `Circuit` class: A boolean circuit evaluator (see: circuit.py)
+4. `Shamir` class: Shamir Secret Sharing over field GF256 (see: shamir.py)
+5. `Messenger` class: the interface between the main circuit evaluation process, and the processes handling p2p communication.
 
 ## Circuits
 
@@ -19,13 +46,6 @@ The `Circuit` class is instanciated with two arguments, a path to a bytecode fil
 The `Circuit` class is made to work in such a way that if only plaintext bits are passed as inputs to the `Circuit` then it can be evaluated 100% locally (the `Circuit` class becomes a simple program executor). However if secret shared bits are passed to the `Circuit` a successful result can only be obtained if a distrbuted set of parties D all run the `Circuit` in parallel (each with their corresponding shares as inputs) where D must be greater than t+1 (and t is the degree of the polynomial from which the secret shares are sampled). When the share outputs are brought together and reconstructed, the correct value of the computation is finally revealed.
 
 A messenger class is only necessary if communication is necessary given the circuit and input types (communication is necessary for any AND gate that takes two share values as input).
-
-
-## Messengers
-
-Currently only the simple `MockMessenger` is implemented which suffices simply for testing: each party is modeled as a thread on a single machine and a `Queue` is used to "pass messages" between threads.
-
-For MPC in a truly distributed setting, implement a `Messenger` class where messages are sent and received over TLS.
 
 ## Shamir Secret Sharing 
 
