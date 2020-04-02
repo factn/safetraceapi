@@ -2,13 +2,22 @@
 
 [What is Secure Multi Party Computation?](https://en.wikipedia.org/wiki/Secure_multi-party_computation)
 
+## Demo SafetraceMPC
+
+To locally demo/test the package you simply need to open two terminals.
+
+In the first terminal enter the safetraceapi/mpc directory and run `python3 local_mpc_network.py`. This spawns a 3 node MPC network.
+In the second terminal enter the safetraceapi/mpc directory and run `python3 mpc_test.py`. This spawns two clients which both send a request to the MPC servers with a secret shared integer as input. The MPC servers compute whether or not the integers "intersect" (are within a range of 50) without ever revealing the two integers, and returns the results (1 for intersect and 0 otherwise).
+
 ## Package Overview
 
-This Multi Party Computation implementation relies on three major classes:
+This Multi Party Computation implementation relies on a number of classes:
 
-1. `Circuit` class: A boolean circuit evaluator (see: circuit.py)
-2. `Messenger` class: P2P communications layer, currently "mocked" with threads (see: messenger.py)
-3. `Shamir` class: Shamir Secret Sharing over field GF256 (see: shamir.py)
+1. `Node` class: An MPC node with a predefied set of peers (see: node.py)
+2. `Client` class: A client that can query the MPC nodes with MPC operations (see: client.py)
+3. `Circuit` class: A boolean circuit evaluator (see: circuit.py)
+4. `Shamir` class: Shamir Secret Sharing over field GF256 (see: shamir.py)
+5. `Messenger` class: the interface between the main circuit evaluation process, and the processes handling p2p communication.
 
 ## Circuits
 
@@ -19,13 +28,6 @@ The `Circuit` class is instanciated with two arguments, a path to a bytecode fil
 The `Circuit` class is made to work in such a way that if only plaintext bits are passed as inputs to the `Circuit` then it can be evaluated 100% locally (the `Circuit` class becomes a simple program executor). However if secret shared bits are passed to the `Circuit` a successful result can only be obtained if a distrbuted set of parties D all run the `Circuit` in parallel (each with their corresponding shares as inputs) where D must be greater than t+1 (and t is the degree of the polynomial from which the secret shares are sampled). When the share outputs are brought together and reconstructed, the correct value of the computation is finally revealed.
 
 A messenger class is only necessary if communication is necessary given the circuit and input types (communication is necessary for any AND gate that takes two share values as input).
-
-
-## Messengers
-
-Currently only the simple `Messenger` is implemented which suffices simply for testing: each party is modeled as a thread on a single machine and a `Queue` is used to "pass messages" between threads.
-
-For MPC in a truly distributed setting, implement a `Messenger` class where messages are sent and received over TLS.
 
 ## Shamir Secret Sharing 
 
