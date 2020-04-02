@@ -40,13 +40,13 @@ class Circuit:
 					x_shares.append(tape[gate[2][-3]])
 					y_shares.append(tape[gate[2][-2]])
 			if len(indexes) > 0:
-				t = triples[0:len(indexes)]
+				trips = triples[:len(indexes)]
 				triples = triples[len(indexes):]
-				msg = shamir.mul_gates_round_1(x_shares, y_shares, t)
+				msg = shamir.mul_gates_round_1(x_shares, y_shares, trips)
 				messenger.broadcast("MUL", i, msg)
 				resps = messenger.collect(i)
 				resps.append(msg)
-				vals = shamir.mul_gates_round_2(x_shares, y_shares, resps, [j.c for j in t])
+				vals = shamir.mul_gates_round_2(x_shares, y_shares, resps, [j.c for j in trips])
 				for k in range(len(indexes)):
 					tape[indexes[k]] = vals[k]
 		return [tape[k] for k in self.output_indexes]
