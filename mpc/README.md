@@ -4,10 +4,28 @@
 
 ## Demo SafetraceMPC
 
-To locally demo/test the package you simply need to open two terminals.
+### Local demo
 
-In the first terminal enter the safetraceapi/mpc directory and run `python3 local_mpc_network.py`. This spawns a 3 node MPC network.
-In the second terminal enter the safetraceapi/mpc directory and run `python3 mpc_test.py`. This spawns two clients which both send a request to the MPC servers with a secret shared integer as input. The MPC servers compute whether or not the integers "intersect" (are within a range of 50) without ever revealing the two integers, and returns the results (1 for intersect and 0 otherwise).
+To locally demo/test the package open two terminals.
+
+In the first terminal enter the safetraceapi/mpc directory and run `python3 local_mpc_network.py`. This spawns a 3 node MPC network on your local machine.
+In the second terminal enter the safetraceapi/mpc directory and run `python3 mpc_test.py`. This spawns two clients which both send a request to the MPC servers with a secret shared integer as input. The MPC servers compute whether or not the integers "intersect" (are within a range of 50) without ever revealing the two integers, and return the results which the clients can locally 'decrypt'
+
+### Live demo
+
+We've set up a simple demo on a virtual machine partitioned into 3 separate servers. Enter the safetraceapi/mpc directory and run demo.py choosing an integer and a string as command line arguments. Then have a friend (or you in a separate shell) do the same. The two calls should look like this:
+
+```
+// request 1
+$ python3 demo.py 1234 abc
+
+// request 2
+$ python3 demo.py 55555 abc
+```
+
+The final string must be a matching unique reference id so the servers know that these two requests go together. The servers will compute the "intersection" between the two integers without ever decrypting or leaking any information about these integers (though the connections should be SSL and are simple unencrypted TCP for now, which could potentially leak information).
+
+The servers are not very sophisticated so I won't be surprised if some requests get stuck (though you'll certainly wait forever regardless if the second client never sends a request with a matching string argument). ALso they are on free tier AWS and there are three servers on one VM which means performance is vastly diminished.
 
 ## Package Overview
 

@@ -3,6 +3,7 @@ from shamir import Shamir
 from triples import gen_triples
 from messenger import Messenger
 from multiprocessing import Queue, Process
+from threading import Thread
 import time
 
 def consumer(mq, n, result, t, processes, reflect):
