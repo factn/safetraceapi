@@ -9,7 +9,7 @@
 To locally demo/test the package open two terminals.
 
 In the first terminal enter the safetraceapi/mpc directory and run `python3 local_mpc_network.py`. This spawns a 3 node MPC network on your local machine.
-In the second terminal enter the safetraceapi/mpc directory and run `python3 mpc_test.py`. This spawns two clients which both send a request to the MPC servers with a secret shared integer as input. The MPC servers compute whether or not the integers "intersect" (are within a range of 50) without ever revealing the two integers, and return the results which the clients can locally 'decrypt'
+In the second terminal enter the safetraceapi/mpc directory and run `python3 mpc_test.py`. This spawns two clients which both send a request to the MPC servers with a secret shared integer as input. The MPC servers compute whether or not the integers "intersect" (are within a range of 1000) without ever revealing the two integers, and return the results which the clients can locally 'decrypt'
 
 ### Live demo
 
