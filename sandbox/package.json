@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "start": "nodemon index.js",
+    "deploy": "cd ..; pwd; git subtree push --prefix sandbox heroku-st-sandbox master || true; cd sandbox"
   },
   "author": "Andres Gomez",
   "license": "ISC",

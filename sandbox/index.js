@@ -23,6 +23,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan('dev'));
 
+app.get('/', (req, resp, next) => {
+    resp.status(200).send({ message: "deployment successful" });
+});
 app.post('/run', runSandbox);
     
 //start app 
