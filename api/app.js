@@ -18,9 +18,13 @@ app.use (bodyParser.json());
 app.use (bodyParser.urlencoded({ extended: false }))
 
 //set up middleware routes
-app.use('/users', require('./routes/users'));
+app.use('/clients', require('./routes/clients'));
+
 app.use('/api/events', require('./routes/events'));
 app.use('/api/devices', require('./routes/devices'));
+app.use('/api/permissions', require('./routes/permissions'));
+
+app.use('/api/encryption', require('./routes/encryption'));
 
 // handle errors (if we reached this line, we havent reached a suitable route)
 app.use ( (request, response, next) => {
