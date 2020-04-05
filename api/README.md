@@ -21,7 +21,9 @@
 **Table Of Contents:**
 - **[Client Accounts](#client-accounts)**
     * [Getting API Keys](#create-account)
-    * [Recovering Your API Keys](#recover-key)
+        * [Private / Public Keys](#priv-public-key)
+        * [API Key](#api-key)
+    * [Recovering Your API Key](#recover-key)
     * [Updating Account Credentials](#update-account)
     * [Deleting Your Account](#delete-account)
 - **[Using Your API Key](#using-key)**
@@ -45,6 +47,31 @@
 
 <a name="create-account"></a>
 ## Getting API Keys:
+
+<a name="priv-public-key"></a>
+#### Public / Private Keys:
+Before creating a Safetrace client account, you need to obtain a Private / Public encryption key pair.
+
+**Method** : `GET <base-url>/api/encryption`
+
+***Response:***
+```yaml
+{
+    private_key:    < private key >,
+    public_key:     < public key >
+}
+```
+>#
+>Keep your `private_key` secure and private
+>#
+***Usage:***
+
+    $ curl -X GET <base-url>/api/encryption
+<hr>
+
+<a name="api-key"></a>
+#### API Key:
+
 In order to use any API endpoints, you must register for a Safetrace account and get an API key.
 
 **Method** : `POST <base-url>/clients`
@@ -60,16 +87,15 @@ In order to use any API endpoints, you must register for a Safetrace account and
 ```yaml
 {
     display_name:   < display name >,
-    bio:            < a short bio >
+    bio:            < a short bio >,
+    public_key:     < public key >
 }
 ```
 ***Response:***
 ```yaml
 {
-    message:        "Account Created For: < email >, save the API and Private Keys included in this object. Make sure to keep them private and secure",
-    api_key:        < api key >,
-    private_key:    < private key >,
-    public_key:     < public key >
+    message:        "Account Created For: < email >, save the API Key included in this object. Make sure to keep it private and secure",
+    api_key:        < api key >
 }
 ```
 ***Usage:***
@@ -79,12 +105,13 @@ In order to use any API endpoints, you must register for a Safetrace account and
     -H 'password: < password >' \
     -d '{ \
         "display_name": "< display name >", \
-        "bio": "< bio >" \
+        "bio": "< bio >", \
+        "public_key": "< public key >" \
     }' \
 <hr>
 
 <a name="recover-key"></a>
-## Recovering Your API Keys:
+## Recovering Your API Key:
 
 **Method** : `GET <base-url>/clients/keys`
 
@@ -98,9 +125,7 @@ In order to use any API endpoints, you must register for a Safetrace account and
 ***Response:***
 ```yaml
 {
-    api_key:        < API-key >,
-    private_key:    < private-key >,
-    public_key:     < public key >
+    api_key:    < API-key >,
 }
 ```
 ***Usage:***
@@ -114,6 +139,7 @@ In order to use any API endpoints, you must register for a Safetrace account and
 ## Updating Your Credentials:
 
 **Method** : `PATCH <base-url>/clients/`
+
 ***Header:***
 ```yaml
 {
@@ -228,8 +254,7 @@ When a Resource Owner gives revokes consent to supply Safetrace with location an
 ***Header:***
 ```yaml
 {
-    api_key:    < api key >,
-    device_key: < device-key for the device to be unregistered >
+    api_key:    < api key >
 }
 ```
 ***Request Body:***
@@ -339,8 +364,7 @@ Denying permission will prohibit a client with `client_id` from accessing data r
 ***Header:***
 ```yaml
 {
-    api_key:    < api key >,
-    device_key: < device key of the device denying permissions >
+    api_key:    < api key >
 }
 ```
 ***Request Body:***
@@ -383,8 +407,9 @@ Check if a device has given a client permission to access their data.
 # Events
 
 **COLUMNS:**
+>#
 > All **[ Hashed ]** and **[ Encrypted ]** values are stored as `string` types in the database.
-
+>#
 Name | Type | _
 --- | --- | ---
 **event_id** | `int` | 
@@ -477,8 +502,7 @@ As a temporary endpoint before true end to end encryption is implemented, you mu
 ***Header:***
 ```yaml
 {
-    api_key:    < api key >,
-    device_key: < device key for the device the data pertains to >
+    api_key:    < api key >
 }
 ```
 ***Request Body:***
@@ -499,7 +523,7 @@ Use the returned `encrypted_body` value from the encryption API endpoint. See [E
 ## Getting Event Data:
 
 >#
->**You will only receive rows that you have access to based on the permissions given by device owners !**
+>**You will only receive rows that you have access to based on the permissions given by device owners!**
 >#
 **Method** : `GET <base-url>/api/events`
 
@@ -510,10 +534,12 @@ Use the returned `encrypted_body` value from the encryption API endpoint. See [E
     private_key:    < your client private key >
 }
 ```
-***Request Body:***
+>#
+> A `private_key` can be obtained [Here](#priv-public-key)
+>#      
+***Request Body: [ OPTIONAL ]***
 ```yaml
 {
-    public_key: < your client public key >,
     columns:    < [ OPTIONAL ] comma seperated column names >,
     query:      < [ OPTIONAL ] an SQL query >
 }

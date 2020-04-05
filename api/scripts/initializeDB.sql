@@ -11,17 +11,16 @@ CREATE TABLE clients (
     password VARCHAR(60) NOT NULL,            -- hashed
     bio VARCHAR(4096) NOT NULL,
     api_key VARCHAR(128) UNIQUE NOT NULL,     -- encrypted      
-    public_key VARCHAR(66) UNIQUE NOT NULL,
-    private_key VARCHAR(192) UNIQUE NOT NULL  -- encrypted
+    public_key VARCHAR(66) UNIQUE NOT NULL
 );
 
 -- INSERT SAFETRACE ACCOUNT (TEMPORARY), need public key in order to give permissions
-INSERT INTO clients (email, display_name, password, bio, api_key, public_key, private_key) VALUES ('#', 'SafetraceAPI', '#', 'SafetraceAPI BIO', '#', '03edad0f6cfeeee940ac302278042eb0d07113e2c83256b8703a25714540f667a0', '#');
+INSERT INTO clients (email, display_name, password, bio, api_key, public_key) VALUES ('#', 'SafetraceAPI', '#', 'SafetraceAPI BIO', '#', '03edad0f6cfeeee940ac302278042eb0d07113e2c83256b8703a25714540f667a0');
 
 CREATE TABLE devices (
-    device_id VARCHAR(64) UNIQUE NOT NULL PRIMARY KEY,  -- hashed
-    device_key VARCHAR(64) UNIQUE NOT NULL              -- hashed
+    device_id VARCHAR(64) UNIQUE NOT NULL PRIMARY KEY  -- hashed
 );
+
 CREATE TABLE ep_permissions (
     device_id VARCHAR(64) NOT NULL,           -- hashed
     

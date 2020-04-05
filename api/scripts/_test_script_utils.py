@@ -36,7 +36,7 @@ def print_obj_simple (obj, prefix=None):
     print (('' if prefix is None else prefix) + ' ' + (json.dumps(obj)))
 
 def connect_to_db_cmd (local):
-    return 'psql -d safetrace_api -U safetrace_user' if local else 'heroku pg:psql'
+    return 'psql -d safetrace_api -U safetrace_user' if local else 'heroku pg:psql --app safetraceapi'
 
 def clear_database (local):
     print ('\nCLEARING DATABASE:')
@@ -48,7 +48,7 @@ def print_all_clients (local):
     
 def print_all_devices (local):
     print ('\nDEVICES:')
-    os.system('echo "SELECT SUBSTRING(device_id, 1, 10) "device_id", SUBSTRING(device_key, 1, 10) "device_key" FROM devices;" | ' + connect_to_db_cmd(local))
+    os.system('echo "SELECT SUBSTRING(device_id, 1, 10) "device_id" FROM devices;" | ' + connect_to_db_cmd(local))
 
 def print_all_permissions (local):
     print ('\nPERMISSIONS:')
@@ -60,17 +60,15 @@ def get_safetrace_keys ():
     for l in lines:
         if l.startswith('SAFETRACE_API_KEY'):
             SAFETRACE_API_KEY = l.split('=')[1]
-        elif l.startswith('SAFETRACE_PUBLIC_KEY'):
-            SAFETRACE_PUBLIC_KEY = l.split('=')[1]
         elif l.startswith('SAFETRACE_PRIVATE_KEY'):
             SAFETRACE_PRIVATE_KEY = l.split('=')[1]
-    return SAFETRACE_API_KEY, SAFETRACE_PUBLIC_KEY, SAFETRACE_PRIVATE_KEY
+    return SAFETRACE_API_KEY, SAFETRACE_PRIVATE_KEY
 
 def create_safetrace_client ():
-    SAFETRACE_API_KEY, SAFETRACE_PUBLIC_KEY, SAFETRACE_PRIVATE_KEY = get_safetrace_keys()
+    SAFETRACE_API_KEY, SAFETRACE_PRIVATE_KEY = get_safetrace_keys()
+    
     return {
         'name': 'SafetraceAPI',
         'api_key': SAFETRACE_API_KEY, 
-        'private_key': SAFETRACE_PRIVATE_KEY, 
-        'public_key': SAFETRACE_PUBLIC_KEY 
+        'private_key': SAFETRACE_PRIVATE_KEY 
     }

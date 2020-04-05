@@ -35,10 +35,9 @@ def check_device_registration (api_key, device_id):
     _test_api_utils.assert_response_is_not_error (response)
     return response['registered']
 
-def device_opt_out (api_key, device_id, device_key):
+def device_opt_out (api_key, device_id):
     headers = { 
-        'api_key': api_key, 
-        'device_key': device_key
+        'api_key': api_key
     }
     body = { 
         'device_id': device_id 

@@ -11,7 +11,6 @@ def get_all_events_for_client(client):
         'private_key': client['private_key']
     }
     body = {
-        'public_key': client['public_key'],
         'columns': 'device_id, row_type, longitude, latitude, contact_id, contact_level, symptoms, infection_status'
     }
     
@@ -51,6 +50,10 @@ def post_data_row (api_key, device_key, body, do_print):
         _test_script_utils.print_obj (response)
 
     body = response['encrypted_body']
+
+    headers = { 
+        'api_key': api_key
+    }
 
     response = requests.post(url=BASE_URL + '/api/events', json=body, headers=headers).json()
     # { event_id: the event id generated for the POSTed row }

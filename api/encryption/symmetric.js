@@ -9,6 +9,7 @@ function getIV () {
     return crypto.randomBytes(16).toString('hex');
 }
 function encryptData (data, key, ivString=null) {
+
     if (typeof data !== 'string')
         throw new Error('Symmetric Encrypting Requires String Data');
     
@@ -38,4 +39,4 @@ function decryptData(encrypted, key) {
     return Buffer.concat([decipher.update(Buffer.from(data, 'hex')), decipher.final()]).toString();
 }
 
-module.exports = { getKey, getIV, encryptData, decryptData };
+module.exports = { getKey, getIV, encryptData, decryptData, splitIVData };

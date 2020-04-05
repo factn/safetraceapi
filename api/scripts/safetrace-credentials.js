@@ -5,7 +5,6 @@ const { v1 } = require('uuid');
 
 function createSafetraceCredentials () {
     console.log('\nSAFETRACE_KEY=' + s_Encryption.getKey());
-    console.log('\nSAFETRACE_IV=' + s_Encryption.getIV());
     console.log('\nSAFETRACE_API_KEY=' + v1());
     let keyPair = a_Encryption.getKeyPair();
     console.log('\nSAFETRACE_PUBLIC_KEY=' + keyPair.publicKey);
