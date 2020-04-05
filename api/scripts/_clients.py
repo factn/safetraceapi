@@ -5,36 +5,46 @@ import _test_script_utils
 BASE_URL = None
 
 def register_client (email, password, name, bio):
+    # first obtain keys
+    response = requests.get(url=BASE_URL + '/api/encryption', json={}, headers={}).json()
+    '''
+    response = {
+        private_key:    < private key >
+        public_key:     < public key >
+    },
+    '''
+    _test_api_utils.assert_response_is_not_error(response)
+    _test_script_utils.print_obj (response)
+    client = {
+        'name': name,
+        'email': email,
+        'password': password,
+        'private_key': response['private_key']
+    }
+
     # pretend we're an app developer signing up
     headers = { 
         'email': email,
-        'password': password,
+        'password': password
     }
     body = {
         'bio': bio,
-        'display_name': name
+        'display_name': name,
+        'public_key': response['public_key']
     }
     response = requests.post(url=BASE_URL + '/clients', json=body, headers=headers).json()
     _test_api_utils.assert_response_is_not_error(response)
     _test_script_utils.print_obj (response)
     '''
     response = {
-        message:        `Account Created For: < email >, save the API and Private Keys included in this object. Make sure to keep them private and secure`,
-        api_key:        < api key >,
-        private_key:    < private key >
-        public_key:     < public key >
+        message:    `Account Created For: < email >, save the API and Private Keys included in this object. Make sure to keep them private and secure`,
+        api_key:    < api key >,
     },
     '''
     # get the API Key for the app dev
-    return {
-        'name': name,
-        'email': email,
-        'password': password,
-        'api_key': response['api_key'], 
-        'private_key': response['private_key'], 
-        'public_key': response['public_key'] 
-    }
-
+    client['api_key'] = response['api_key']
+    return client
+    
 def register_test_clients ():
     print ('\nCLIENTS SIGN UP:')
     safetrace_client = _test_script_utils.create_safetrace_client()
@@ -60,13 +70,9 @@ def update_client_credentials(client):
     client['password'] = new_password
     return client
 
-def lose_and_recover_key (client, key_in_object, url_suffix):
-    return client
-
 def client_lose_and_recover_keys (client):
-    client['api_key'] = None #uh oh, lost the api key....
-    client['private_key'] = None #uh oh, lost the api key....
-    client['public_key'] = None #uh oh, lost the api key....
+    client['api_key'] = None #uh oh, lost the api keys....
+    
     headers = { 
         'email': client['email'],
         'password': client['password'],
@@ -76,8 +82,6 @@ def client_lose_and_recover_keys (client):
     _test_script_utils.print_obj (response, prefix='RECOVER API AND PRIVATE KEYS:')
     
     client['api_key'] = response['api_key']
-    client['private_key'] = response['private_key']
-    client['public_key'] = response['public_key']
     return client
 
 def delete_client_account (client):

@@ -76,7 +76,7 @@ _events.post_data_row(api_key, device_keys[0], {
 print_events()
 
 '''UNREGISTER DEVICE 3'''
-_devices.device_opt_out (api_key, device_ids[2], device_keys[2])
+_devices.device_opt_out (api_key, device_ids[2])
 _test_script_utils.print_all_devices(LOCAL)
 
 print ('CHECK FOR BLUTOOTH DATA DELETE:')
@@ -91,7 +91,7 @@ _permissions.grant_permission (api_key, device_ids[0], client['client_id'], devi
 print_events()
 
 # device 2 no longer wants client 2 to have access to it's data
-_permissions.deny_permissions (api_key, device_ids[0], client['client_id'], device_keys[0], '\nDEVICE 2 DENIES PERMISSIONS FROM CLIENT 2:')
+_permissions.deny_permissions (api_key, device_ids[0], client['client_id'], '\nDEVICE 2 DENIES PERMISSIONS FROM CLIENT 2:')
 print_events()
   
 '''DELETE CLIENT ACCOUNT'''

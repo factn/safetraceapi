@@ -46,10 +46,9 @@ def grant_permission (api_key, device_id, client_id, device_key, print_prefix):
     # { message: 'Permissions Granted For End Party' }
     _test_api_utils.assert_and_print_response(response, print_prefix)
     
-def deny_permissions (api_key, device_id, client_id, device_key, print_prefix):
+def deny_permissions (api_key, device_id, client_id, print_prefix):
     headers = { 
-        'api_key': api_key, 
-        'device_key': device_key
+        'api_key': api_key
     }
     body = { 
         'device_id': device_id,
