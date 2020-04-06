@@ -9,7 +9,6 @@ class Client:
 		self.t = t
 		self.n = n
 		self.idx2node = idx2node
-		self.queue = Queue()
 
 	def send_operation(self, val, uuid):
 		procs = []
@@ -18,18 +17,24 @@ class Client:
 		while len(bv) < 64:
 			bv = '0' + bv
 		shares = Shamir(self.t, self.n).share_bitstring_secret(bv[::-1])
+		q = Queue()
 		for k, v in self.idx2node.items():
 			msg = {'uuid': uuid, 'inputs': serialize_shares(shares[k-1])}
 			host, port = v
-			procs.append(Process(target=run_single_client, args=(msg, host, port, self.queue)))
+			procs.append(Process(target=run_single_client, args=(msg, host, port, q)))
 		for p in procs:
 			p.start()
-		for p in procs:
-			p.join()
 		vals = []
-		while not self.queue.empty():
-			msg = self.queue.get()
-			vals.append(deserialize_shares(msg['result']))
+		while len(vals) < self.t+1:
+			while not q.empty():
+				msg = q.get()
+				vals.append(deserialize_shares(msg['result']))
+		for p in procs:
+			p.terminate()
+		while not q.empty():
+			q.get()
+		q.close()
+		q.join_thread()
 		v = Shamir(self.t, self.n).reconstruct_bitstring_secret(vals)
 		return v
 

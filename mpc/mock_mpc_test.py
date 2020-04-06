@@ -1,7 +1,7 @@
 from circuit import Circuit
 from shamir import Shamir
 from triples import gen_triples
-from messenger import Messenger
+from dispatcher import Dispatcher
 from multiprocessing import Queue, Process
 from threading import Thread
 import time
@@ -18,9 +18,9 @@ def consumer(mq, n, result, t, processes, reflect):
 
 def run_circuit_process(t, n, c_path, index, queues, main_queue, inputs, triples):
     shamir = Shamir(t, n)
-    messenger = Messenger(t, n, index, queues, "--UNIQUE COMPUTATION ID--")
+    dispatcher = Dispatcher(t, n, index, queues, "--UNIQUE COMPUTATION ID--")
     c = Circuit(c_path, ['S' for _ in range(len(inputs))])
-    outputs = c.evaluate(inputs, shamir=shamir, messenger=messenger, triples=triples)
+    outputs = c.evaluate(inputs, shamir=shamir, dispatcher=dispatcher, triples=triples)
     main_queue.put(outputs)
 
 def test_mpc(t, n, c_path, n_triples, inputs, result, reflect=False):

@@ -16,7 +16,7 @@ class Circuit:
 			if gate[1] != None:
 				self.circuit_layers[gate[0][1]].append((i, gate[0][2], gate[1]))
 
-	def evaluate(self, inputs, shamir=None, messenger=None, triples=None):
+	def evaluate(self, inputs, shamir=None, dispatcher=None, triples=None):
 		tape = [None for _ in range(self.tape_len)]
 		tape[0] = 0
 		tape[1] = 1
@@ -43,8 +43,10 @@ class Circuit:
 				trips = triples[:len(indexes)]
 				triples = triples[len(indexes):]
 				msg = shamir.mul_gates_round_1(x_shares, y_shares, trips)
-				messenger.broadcast("MUL", i, msg)
-				resps = messenger.collect(i)
+				#print(f"Circuit {dispatcher.index} sending MPC messages for round {i}")
+				dispatcher.broadcast("MUL", i, msg)
+				#print(f"Circuit {dispatcher.index} collecting MPC messages for round {i}")
+				resps = dispatcher.collect(i)
 				resps.append(msg)
 				vals = shamir.mul_gates_round_2(x_shares, y_shares, resps, [j.c for j in trips])
 				for k in range(len(indexes)):

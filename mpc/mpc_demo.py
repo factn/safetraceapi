@@ -1,16 +1,16 @@
 from client import Client
 
 '''
-Pass an integer below 4 billion and any reference id as two command line args:
+Pass an integer below 18 trillion and any reference id as two command line args:
 
-$ python3 demo.py 1000 abcd
+$ python3 mpc_demo.py 1000 abcd
 
 if someone else (or you in a separate process) runs the same script with the same reference id for example:
 
-$ python3 demo.py 15000000 abcd
+$ python3 mpc_demo.py 15000000 abcd
 
 Then the remote servers will securely compute the intersection. Without ever decrypting the two private inputs (the integers) 
-the clients can learn if their two integers were more than or less than 50 units away from one another (1 for intersect, 0 otherwise).
+the clients can learn if their two integers were more than or less than 1000 units away from one another (1 for intersect, 0 otherwise).
 The servers don't know the inputs or even the result of the computation, which is locally reconstructed client side from the server shares.
 '''
 

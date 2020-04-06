@@ -1,9 +1,10 @@
 import socket, select, json
 
-def receive_to_queue(port, queue):
+def recv_mpc_msgs(port, queue):
 	connections = []
 	server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+	server_socket.setblocking(0)
 	server_socket.bind(('0.0.0.0', port))
 	server_socket.listen(10)
 
@@ -21,8 +22,9 @@ def receive_to_queue(port, queue):
 			#New connection
 			if sock == server_socket:
 				sockfd, addr = server_socket.accept()
+				sockfd.setblocking(0)
 				connections.append(sockfd)
-				print(f'mpc client {addr[0]}:{addr[1]} connected')		
+				#print(f'mpc client {addr[0]}:{addr[1]} connected')		
 			#Some incoming message from a client
 			else:
 				try:
@@ -31,18 +33,19 @@ def receive_to_queue(port, queue):
 						data += sock.recv(1024)
 					data = data.strip()
 					msg = json.loads(data.decode())
+					#print(f"receiving on socket: {msg}")
 					queue.put(msg)
 				
 				# client disconnected, so remove from socket list
-				except:
-					#print(f'mpc client disconnected')
-					#sock.close()
-					#connections.remove(sock)
+				except Exception as e:
+					#print(f'mpc client disconnected because: {e}')
+					sock.close()
+					connections.remove(sock)
 					continue
 		
 	server_socket.close()
 
-def send_from_queue(peer2q):
+def send_mpc_msgs(peer2q):
 	sockets = []
 	queues = []
 	for k, v in peer2q.items():
@@ -55,5 +58,21 @@ def send_from_queue(peer2q):
 			if not queues[i].empty():
 				msg = queues[i].get()
 				v = json.dumps(msg)
-				sockets[i].sendall(str.encode(v+'\n'))
-	s.close()
+				try:
+					sockets[i].sendall(str.encode(v+'\n'))
+				except:
+					try:
+						sockets[i].close()
+					except:
+						#print("failed to close")
+						pass
+					queues[i].put(msg)
+					try:
+						sockets[i].connect()
+					except:
+						#print("failed to reconnect")
+						pass
+	for s in sockets:
+		s.close()
+
+

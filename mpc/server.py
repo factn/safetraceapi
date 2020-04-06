@@ -1,13 +1,13 @@
-from p2p import receive_to_queue, send_from_queue
+import p2p
 from serialize import *
 from triples import TripleGeneration
 from shamir import Shamir
-from messenger import Messenger
+from dispatcher import Dispatcher
 from circuit import Circuit
 from multiprocessing import Process, Queue
 import socket, select, json, os
 
-class Node:
+class Server:
 
 	def __init__(self, node_port, t, n, index, idx2peer, circuit_dir=None):
 		self.port = node_port
@@ -16,19 +16,19 @@ class Node:
 		self.index = index
 		self.idx2peer = idx2peer
 		self.queues = [Queue() for _ in range(self.n)]
-		self.mpc_clients = []
 		self.circuit_dir = circuit_dir
 		if self.circuit_dir == None:
 			self.circuit_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bristol_circuits')
 		self.mpc_server = None
-		peer2q = {}
+		mpc_send_queues = {}
 		for i in range(1, self.n+1):
 			host, port = self.idx2peer[i]
 			if i==self.index:
-				self.mpc_server = Process(target=receive_to_queue, args=(port, self.queues[i-1]))
+				mpc_recv_queue = self.queues[self.index-1]
+				self.mpc_server = Process(target=p2p.recv_mpc_msgs, args=(port, mpc_recv_queue))
 			else:
-				peer2q[self.idx2peer[i]] = self.queues[i-1]
-		self.mpc_client = Process(target=send_from_queue, args=(peer2q,))
+				mpc_send_queues[self.idx2peer[i]] = self.queues[i-1]
+		self.mpc_client = Process(target=p2p.send_mpc_msgs, args=(mpc_send_queues,))
 
 	def start_mpc_server(self):
 		if not self.mpc_server.is_alive():
@@ -86,10 +86,12 @@ class Node:
 				if sock == server_socket:
 					sockfd, addr = server_socket.accept()
 					connections.append(sockfd)
-					print(f'Client {addr[0]}:{addr[1]} connected')		
+					print(f'Client {addr[0]}:{addr[1]} connected')
+					#print("number of :  ", len(connections))
 				#Some incoming message from a client
 				else:
 					try:
+						#print(f"receiving from end user: {addr[0]}:{addr[1]}")
 						data = sock.recv(1024)
 						while data.decode()[-1] != '\n':
 							data += sock.recv(1024)
@@ -99,46 +101,56 @@ class Node:
 							server_socket.close()
 							return
 						if msg['uuid'] in queued_intersections:
+							print(f"Execute operation {msg['uuid']}")
 							inputs2 = deserialize_shares(msg['inputs'])
 							inputs1 = queued_intersections[msg['uuid']][0]
 							triples = queued_intersections[msg['uuid']][1]
-							m = Messenger(self.t, self.n, self.index, self.queues, msg['uuid']+'-sub')
+							m = Dispatcher(self.t, self.n, self.index, self.queues, msg['uuid']+'-sub')
 							s = Shamir(self.t, self.n)
 							subtract = Circuit(os.path.join(self.circuit_dir, 'sub64.txt'), ['S' for _ in range(128)])
-							outputs1 = subtract.evaluate(inputs1+inputs2, shamir=s, messenger=m, triples=triples[:300])
+							outputs1 = subtract.evaluate(inputs1+inputs2, shamir=s, dispatcher=m, triples=triples[:300])
 							triples = triples[300:]
 							m.uuid = msg['uuid']+'-mul'
 							mul = Circuit(os.path.join(self.circuit_dir, 'mul64mod.txt'), ['S' for _ in range(128)])
-							outputs2 = mul.evaluate(outputs1+outputs1, shamir=s, messenger=m, triples=triples[:5000])
+							outputs2 = mul.evaluate(outputs1+outputs1, shamir=s, dispatcher=m, triples=triples[:5000])
 							triples = triples[5000:]
-							m.uuid = msg['uuid']+'-z'
+							m.uuid = msg['uuid']+'-eqz'
 							eqz = Circuit(os.path.join(self.circuit_dir, 'eqzero64.txt'), ['S' for _ in range(32)]+['V' for _ in range(32)])
-							bit1 = eqz.evaluate(outputs2[32:]+[0 for _ in range(32)], shamir=s, messenger=m, triples=triples[200:])
+							bit1 = eqz.evaluate(outputs2[32:]+[0 for _ in range(32)], shamir=s, dispatcher=m, triples=triples[200:])
 							triples = triples[200:]
 							m.uuid = msg['uuid']+'-lt'
-							br = bin(2500)[2:]
+							br = bin(1000000)[2:] # Hardcoded radius of intersection r = 1000
 							while len(br) < 32:
 								br = '0'+br
 							lt = Circuit(os.path.join(self.circuit_dir, 'lessthan32.txt'), ['S' for _ in range(32)]+['V' for _ in range(32)])
-							bit2 = lt.evaluate(outputs2[:32]+[int(i) for i in br[::-1]], shamir=s, messenger=m, triples=triples[400:])
+							bit2 = lt.evaluate(outputs2[:32]+[int(i) for i in br[::-1]], shamir=s, dispatcher=m, triples=triples[400:])
 							triples = triples[:400]
-							m.uuid = msg['uuid']
+							m.uuid = msg['uuid']+'-and'
 							bit1.extend(bit2)
 							c = Circuit(os.path.join(self.circuit_dir, 'mul2.txt'), ['S' for _ in range(2)])
-							out = c.evaluate(bit1, shamir=s, messenger=m, triples=triples)
+							out = c.evaluate(bit1, shamir=s, dispatcher=m, triples=triples)
 							res_msg = {'uuid': msg['uuid'], 'result': serialize_shares(out)}
 							res = json.dumps(res_msg)
 							sock.sendall(str.encode(res+'\n'))
 							queued_intersections[msg['uuid']][2].sendall(str.encode(res+'\n'))
-							del queued_intersections[msg['uuid']]
+							other_conn = queued_intersections[msg['uuid']][2]
+							queued_intersections.pop(msg['uuid'], None)
+							other_conn.close()
+							connections.remove(other_conn)
+							sock.close()
+							connections.remove(sock)
 						else:
+							print(f"Queue operation {msg['uuid']}")
 							inputs = deserialize_shares(msg['inputs'])
-							m = Messenger(self.t, self.n, self.index, self.queues, msg['uuid']+'-triples')
-							tg = TripleGeneration(self.index, Shamir(self.t, self.n), m, batch_size=1000, n_batches=6)
-							tg.run()
-							queued_intersections[msg['uuid']] = (inputs, tg.triples, sock)
+							# TODO: TRIPLES CURRENTLY MOCKED (should be distributedly created in the background, and never reused) THIS BREAKS SECURITY.
+							with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f'test_triples/{self.index}'), 'r') as f:
+								data = f.read()
+							data = json.loads(data)
+							triples = deserialize_triples(data['data'])
+							queued_intersections[msg['uuid']] = (inputs, triples, sock)
+							continue
 					except:
-						print(f'Client disconnected')
+						print(f'Client {addr[0]}:{addr[1]} disconnected')
 						sock.close()
 						connections.remove(sock)
 						continue

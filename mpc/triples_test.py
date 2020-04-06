@@ -1,5 +1,5 @@
 from shamir import Shamir
-from messenger import Messenger
+from dispatcher import Dispatcher
 from triples import TripleGeneration
 from multiprocessing import Queue, Process
 import time
@@ -22,8 +22,8 @@ def consumer(mq, t, n, processes):
 
 def run_triplegen_process(t, n, index, queues, main_queue, batch_size, n_batches):
     shamir = Shamir(t, n)
-    messenger = Messenger(t, n, index, queues, "")
-    tg = TripleGeneration(index, shamir, messenger, batch_size=batch_size, n_batches=n_batches)
+    dispatcher = Dispatcher(t, n, index, queues, "")
+    tg = TripleGeneration(index, shamir, dispatcher, batch_size=batch_size, n_batches=n_batches)
     tg.run()
     main_queue.put(tg.triples)
 
