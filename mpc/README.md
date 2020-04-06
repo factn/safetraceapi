@@ -4,26 +4,25 @@
 
 ## Demo SafetraceMPC
 
-We've set up a simple demo on a virtual machine partitioned into 3 separate servers. Enter the safetraceapi/mpc directory and run mpc_demo.py choosing an integer and any id string as command line args. Then have a friend (or you in a separate shell) do the same. The two calls should look like this:
-
-```
-// request 1
-$ python3 mpc_demo.py 1234 abc
-
-// request 2
-$ python3 mpc_demo.py 55555 abc
-```
-
-The string arg must be a matching unique reference id so the servers know that these two requests go together. The servers will compute the "intersection" between the two integers without ever decrypting or leaking any information about these integers (though the connections should be SSL and are simple unencrypted TCP for now, so this is currently NOT SECURE, it's just a demo).
-
-The servers are on free tier AWS and all three share one VM which means performance is certainly diminished. Also the networking is still a bit in process so it's possible requests could get stuck and time out.
-
 ### Local demo
 
-To locally test the package open two terminals.
+To locally demo/test the package open two shell sessions. In the root directory of this project run:
 
-In the first terminal enter the safetraceapi/mpc directory and run `python3 local_mpc_network.py`. This spawns a 3 node MPC network on your local machine.
-In the second terminal enter the safetraceapi/mpc directory and run `python3 local_mpc_test.py`. This spawns two clients which both send a request to the MPC servers with a secret shared integer as input. The MPC servers compute whether or not the integers "intersect" (are within a range of 1000) without ever revealing the two integers, and return the results which the clients can locally 'decrypt'
+```
+// shell 1
+$ python3 local_mpc_network.py
+
+// shell 2
+$ python3 local_mpc_test.py
+```
+
+
+- `local_mpc_network.py`: This spawns a 3 node MPC network on your local machine.
+- `local_mpc_test.py`: This spawns two clients which both send a request to the MPC servers with a secret shared integer as input. The MPC servers compute whether or not the integers 'intersect' (are within a radius of 1000) without ever revealing the two integers, and return the results which the clients locally 'decrypt'
+
+### AWS demo
+
+We have an AWS server up and running as a way to demo this project in an actually distributed setting (though the three MPC nodes still all live together on the same server, rather than distributed). You can test it by running `mpc_demo.py` with two command line arguments: an integer and an id string. You'll need a firend (or you in another process) to run a corresponding `mpc_demo.py` call with the same id string command line arg for the request to succeed (the request will check whether the two integers are within a radius of 1000). SOmetimes the server is down so sorry in advance if you hang on indefinitely!
 
 ## Package Overview
 
