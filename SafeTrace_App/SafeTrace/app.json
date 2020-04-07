@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "SafeTrace",
+    "slug": "SafeTrace",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "myapp",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "extra": {
+      "API_KEY": "4039f41b2a8904be21f26b818d46794275773820-7847-11ea-b0d4-f9b5c6dae2ee"
+    }
+  }
+}
