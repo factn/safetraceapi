@@ -40,3 +40,5 @@ Infection status can be submitted via the buttons (UISegmentedController) with t
 To use this project, clone/download the repository and open the SafeTrace Demo in XCode. You can then click the "Build" (looks like play) button after selecting your desired device. Then, click into the simulator app, wich will open after a slight delay, where you can play around with the available features as they are added. For details on how to access the demo database, look at the code in the <a href="https://github.com/factn/safetraceapi/tree/master/RestAPI">Rest API</a> folder in this repository.
 
 Please note: this app is currently desinged for backend testing purposes and is not guaranteed to work/display on all devices or simulators. It is also recommended that you go into settings > general > reset and click "reset location & privacy" before/after each run of the app, especially once the location and bluetooth functionality is implemented.
+<br><br>
+Please reach out to Jack Hester on the Slack channel with questions!
