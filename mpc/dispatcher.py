@@ -1,6 +1,6 @@
+#import datetime, os
 from serialize import *
-from datetime import datetime
-import os
+
 
 class Dispatcher:
 
@@ -25,7 +25,7 @@ class Dispatcher:
 			b = serialize_triple_c_msg(data)
 		else:
 			raise ValueError(f"Unknown msg type: {msg_type}")
-		#print(f"{os.getpid()}:{datetime.now()} dispatcher {self.index} put to send queue round {round_n} to {player} (uuid: {self.uuid}")
+		#print(f"{os.getpid()}:{datetime.datetime.now()} dispatcher {self.index} put to send queue round {round_n} to {player} (uuid: {self.uuid}")
 		self.queues[player-1].put({'uuid': self.uuid, 'sender': self.index, 'msgtype': msg_type, 'round': round_n, 'data': b})
 
 	def collect(self, round_n, full_quorum=False):
@@ -37,7 +37,7 @@ class Dispatcher:
 		while len(out) < n_resps:
 			if not recv.empty():
 				r = recv.get()
-				#print(f"{os.getpid()}:{datetime.now()} dispatcher {self.index} waiting for (round #{round_n}, uuid #{self.uuid}). Viewing queue element: {r}")
+				#print(f"{os.getpid()}:{datetime.datetime.now()} dispatcher {self.index} waiting for (round #{round_n}, uuid #{self.uuid}). Viewing queue element: {r}")
 				if (self.uuid==r['uuid']) and (r['round'] == round_n):
 					if r['msgtype'] == "MUL":
 						data = deserialize_mul_msg(r['data'])

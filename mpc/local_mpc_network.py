@@ -17,6 +17,7 @@ if __name__ == '__main__':
 				subprocess.call(['kill', '-9', f'{o}'])
 		except:
 			pass
+	# run nodes
 	nodes = []
 	idx2peer = {1: ('0.0.0.0', 8003), 2: ('0.0.0.0', 8004), 3: ('0.0.0.0', 8005)}
 	t = 1
