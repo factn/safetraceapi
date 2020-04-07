@@ -2,11 +2,30 @@
 
 [What is Secure Multi Party Computation?](https://en.wikipedia.org/wiki/Secure_multi-party_computation)
 
+## Requirements
+
+- python 3.7+
+- gf256 module (`pip3 install gf256`)
+
 ## Demo SafetraceMPC
+
+To demo the mpc engine enter the safetrace/mpc directory. Choose an integer between 0-10^19. Don't share your integer with your partner but do agree on an execution id (any string). If you don't have a partner you can just run both clients yourself in two separate terminals. They should look like this:
+
+```
+// partner 1
+$ python3 mpc_demo.py 1500 someIDstring
+
+// partner 2
+$ python3 mpc_demo.py 2499 someIDstring
+```
+
+The ID string argument can be anything as long as it is UNIQUE, if you chose an already used execution ID you could receive bad/wrong results.
+
+The MPC engine will analyse the integer args from both clients and output a single bit as to whether or not these ints are within a range of 1000 of each other (`1` for in range `0` otherwise). What is important here is that this calculation is happening **without the servers learning anything about the client's private integers, or even the resulting bit of the computation**. Only the clients locally reconstruct the results that the servers distributedly computed in a zero-knowledge way. Note that since the server-client connections are not using TLS (and a few other details, like the reuse of multiplication triples) this is for demo purposes only and NOT FULLY SECURED.
 
 ### Local demo
 
-To locally demo/test the package open two shell sessions. In the root directory of this project run:
+To locally demo/test the package open two shell sessions. In the safetrace/mpc directory run:
 
 ```
 // shell 1
@@ -19,10 +38,6 @@ $ python3 local_mpc_test.py
 
 - `local_mpc_network.py`: This spawns a 3 node MPC network on your local machine.
 - `local_mpc_test.py`: This spawns two clients which both send a request to the MPC servers with a secret shared integer as input. The MPC servers compute whether or not the integers 'intersect' (are within a radius of 1000) without ever revealing the two integers, and return the results which the clients locally 'decrypt'
-
-### AWS demo
-
-We have an AWS server up and running as a way to demo this project in an actually distributed setting (though the three MPC nodes still all live together on the same server, rather than distributed). You can test it by running `mpc_demo.py` with two command line arguments: an integer and an id string. You'll need a firend (or you in another process) to run a corresponding `mpc_demo.py` call with the same id string command line arg for the request to succeed (the request will check whether the two integers are within a radius of 1000). SOmetimes the server is down so sorry in advance if you hang on indefinitely!
 
 ## Package Overview
 
