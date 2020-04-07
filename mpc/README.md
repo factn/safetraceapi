@@ -2,13 +2,52 @@
 
 [What is Secure Multi Party Computation?](https://en.wikipedia.org/wiki/Secure_multi-party_computation)
 
+## Requirements
+
+- python 3.7+
+- gf256 module (`pip3 install gf256`)
+
+## Demo SafetraceMPC
+
+To demo the mpc engine enter the safetrace/mpc directory. Choose an integer between 0-10^19. Don't share your integer with your partner but do agree on an execution id (any string). If you don't have a partner you can just run both clients yourself in two separate terminals. They should look like this:
+
+```
+// partner 1
+$ python3 mpc_demo.py 1500 someIDstring
+
+// partner 2
+$ python3 mpc_demo.py 2499 someIDstring
+```
+
+The ID string argument can be anything as long as it is UNIQUE, if you chose an already used execution ID you could receive bad/wrong results.
+
+The MPC engine will analyse the integer args from both clients and output a single bit as to whether or not these ints are within a range of 1000 of each other (`1` for in range `0` otherwise). What is important here is that this calculation is happening **without the servers learning anything about the client's private integers, or even the resulting bit of the computation**. Only the clients locally reconstruct the results that the servers distributedly computed in a zero-knowledge way. Note that since the server-client connections are not using TLS (and a few other details, like the reuse of multiplication triples) this is for demo purposes only and NOT FULLY SECURED.
+
+### Local demo
+
+To locally demo/test the package open two shell sessions. In the safetrace/mpc directory run:
+
+```
+// shell 1
+$ python3 local_mpc_network.py
+
+// shell 2
+$ python3 local_mpc_test.py
+```
+
+
+- `local_mpc_network.py`: This spawns a 3 node MPC network on your local machine.
+- `local_mpc_test.py`: This spawns two clients which both send a request to the MPC servers with a secret shared integer as input. The MPC servers compute whether or not the integers 'intersect' (are within a radius of 1000) without ever revealing the two integers, and return the results which the clients locally 'decrypt'
+
 ## Package Overview
 
-This Multi Party Computation implementation relies on three major classes:
+This Multi Party Computation implementation relies on a number of classes:
 
-1. `Circuit` class: A boolean circuit evaluator (see: circuit.py)
-2. `MockMessenger` class: P2P communications layer, currently "mocked" with threads (see: messenger.py)
-3. `Shamir` class: Shamir Secret Sharing over field GF256 (see: shamir.py)
+1. `Server` class: An MPC node with a predefied set of peers (see: node.py)
+2. `Client` class: A client that can query the MPC nodes with MPC operations (see: client.py)
+3. `Circuit` class: A boolean circuit evaluator (see: circuit.py)
+4. `Shamir` class: Shamir Secret Sharing over field GF256 (see: shamir.py)
+5. `Dispatcher` class: the interface between the main circuit evaluation process, and the processes handling p2p communication.
 
 ## Circuits
 
@@ -18,14 +57,7 @@ The `Circuit` class is instanciated with two arguments, a path to a bytecode fil
 
 The `Circuit` class is made to work in such a way that if only plaintext bits are passed as inputs to the `Circuit` then it can be evaluated 100% locally (the `Circuit` class becomes a simple program executor). However if secret shared bits are passed to the `Circuit` a successful result can only be obtained if a distrbuted set of parties D all run the `Circuit` in parallel (each with their corresponding shares as inputs) where D must be greater than t+1 (and t is the degree of the polynomial from which the secret shares are sampled). When the share outputs are brought together and reconstructed, the correct value of the computation is finally revealed.
 
-A messenger class is only necessary if communication is necessary given the circuit and input types (communication is necessary for any AND gate that takes two share values as input).
-
-
-## Messengers
-
-Currently only the simple `MockMessenger` is implemented which suffices simply for testing: each party is modeled as a thread on a single machine and a `Queue` is used to "pass messages" between threads.
-
-For MPC in a truly distributed setting, implement a `Messenger` class where messages are sent and received over TLS.
+A dispatcher class is only necessary if communication is necessary given the circuit and input types (communication is necessary for any AND gate that takes two share values as input).
 
 ## Shamir Secret Sharing 
 

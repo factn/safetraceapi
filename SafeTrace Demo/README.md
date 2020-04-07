@@ -1,4 +1,7 @@
 # SafeTrace Demo Phone App
+>#
+DEVELOPMENT HAS STOPPED ON THIS DEMO APP. OUR CONSUMER-FACING APP IS BEING DEVELOPED AND THE CODE CAN BE FOUND IN THE "SafeTrace_App" FOLDER ON THIS REPOSITORY.
+>#
 
 Project written as part of: <a href = "https://safetraceapi.org">https://safetraceapi.org</a>.  Code in this folder written by <a href="https://jackhester.com">Jack Hester</a>
 

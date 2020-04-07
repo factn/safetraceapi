@@ -134,7 +134,7 @@ class Shamir:
 		'''
 
 		assert 2*self.t < self.n, "triple generation requires t>n/2"
-		assert len(c_share_shares) == self.n, "must have at least three participants"
+		assert len(c_share_shares) == self.n, f"triple generation requires all {self.n} participants"
 		triples = []
 		for i in range(len(c_share_shares[0])):
 			c_shares = [j[i] for j in c_share_shares]
@@ -200,19 +200,6 @@ class TripleShare:
 		self.a = a
 		self.b = b
 		self.c = c
-
-def gen_triples(t, n, n_triples):
-	triples = [[] for _ in range(n)]
-	for i in range(n_triples):
-		a = randelement()
-		b = randelement()
-		c = a*b
-		a_shares = Shamir(t, n).share_secret(a)
-		b_shares = Shamir(t, n).share_secret(b)
-		c_shares = Shamir(t, n).share_secret(c)
-		for i in range(n):
-			triples[i].append(TripleShare(a_shares[i], b_shares[i], c_shares[i]))
-	return triples
 
 ##
 ## Helper Math
