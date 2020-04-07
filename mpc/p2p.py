@@ -1,78 +1,54 @@
-import socket, select, json
+import json, asyncio
 
-def recv_mpc_msgs(port, queue):
-	connections = []
-	server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-	server_socket.setblocking(0)
-	server_socket.bind(('0.0.0.0', port))
-	server_socket.listen(10)
-
-	# Add server socket to the list of readable connections
-	connections.append(server_socket)
-
-	print('mpc server started on port ' + str(port))
-
+async def recv_mpc_msgs(reader, writer, queue):
 	while True:
-		# Get the list sockets which are ready to be read through select
-		read_sockets, _, _ = select.select(connections,[],[])
+		try:
+			data = await reader.readline()
+			data = data.strip()
+			msg = json.loads(data.decode())
+			queue.put(msg)
+		except:
+			writer.close()
+			break
 
-		for sock in read_sockets:
-			
-			#New connection
-			if sock == server_socket:
-				sockfd, addr = server_socket.accept()
-				sockfd.setblocking(0)
-				connections.append(sockfd)
-				#print(f'mpc client {addr[0]}:{addr[1]} connected')		
-			#Some incoming message from a client
-			else:
-				try:
-					data = sock.recv(1024)
-					while data.decode()[-1] != '\n':
-						data += sock.recv(1024)
-					data = data.strip()
-					msg = json.loads(data.decode())
-					#print(f"receiving on socket: {msg}")
-					queue.put(msg)
-				
-				# client disconnected, so remove from socket list
-				except Exception as e:
-					#print(f'mpc client disconnected because: {e}')
-					sock.close()
-					connections.remove(sock)
-					continue
-		
-	server_socket.close()
+def run_mpc_msg_receiver(port, queue):
+	loop = asyncio.get_event_loop()
+	coro = asyncio.start_server(lambda r, w: recv_mpc_msgs(r, w, queue), '0.0.0.0', port, loop=loop)
+	server = loop.run_until_complete(coro)
+	print(f'MPC msg receiver starting on {server.sockets[0].getsockname()}')
+	try:
+		loop.run_forever()
+	except KeyboardInterrupt:
+		pass
+	server.close()
+	loop.run_until_complete(server.wait_closed())
+	loop.close()
 
-def send_mpc_msgs(peer2q):
-	sockets = []
+async def send_mpc_msg(writers, queues, peers, i):
+	msg = queues[i].get()
+	v = json.dumps(msg)
+	try:
+		writers[i].write(str.encode(v+'\n'))
+		await writers[i].drain()
+	except:
+		queues[i].put(msg)
+		writers[i].close()
+		await writers[i].wait_closed()
+		_, new_writer = await asyncio.open_connection(peers[i][0], peers[i][1])
+		writers[i] = new_writer
+
+async def send_mpc_msgs(peer2q):
+	peers = []
 	queues = []
+	writers = []
 	for k, v in peer2q.items():
-		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		s.connect((k[0], k[1]))
-		sockets.append(s)
+		_, writer = await asyncio.open_connection(k[0], k[1])
+		writers.append(writer)
 		queues.append(v)
+		peers.append(k)
 	while True:
-		for i in range(len(queues)):
-			if not queues[i].empty():
-				msg = queues[i].get()
-				v = json.dumps(msg)
-				try:
-					sockets[i].sendall(str.encode(v+'\n'))
-				except:
-					try:
-						sockets[i].close()
-					except:
-						#print("failed to close")
-						pass
-					queues[i].put(msg)
-					try:
-						sockets[i].connect()
-					except:
-						#print("failed to reconnect")
-						pass
-	for s in sockets:
-		s.close()
+		sends = [send_mpc_msg(writers, queues, peers, i) for i in range(len(queues)) if not queues[i].empty()]
+		await asyncio.gather(*sends)
 
-
+def run_mpc_msg_sender(peer2q):
+	asyncio.run(send_mpc_msgs(peer2q))
