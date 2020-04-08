@@ -9,19 +9,15 @@
 
 ## Demo SafetraceMPC
 
-To demo the mpc engine enter the safetrace/mpc directory. Choose an integer between 0-10^19. Don't share your integer with your partner but do agree on an execution id (any string). If you don't have a partner you can just run both clients yourself in two separate terminals. They should look like this:
+The safetrace mpc engine demo is a *privacy preserving* geolocal intersection.  Choose any standard decimal degree geolocation on the globe and our MPC servers will evaluate whether or not the coordinate falls within Brooklyn, NY. The servers compute this intersection **without ever having access to the client's actual geo-coordinate or leakng any information about it**. The servers do not even learn the result of the computation (only the client can reconstruct the result bit from each of the servers partial results)
+
+To run the demo enter the safetrace/mpc directory. Run the demo and pass the latitude and longitude as options like so:
 
 ```
-// partner 1
-$ python3 mpc_demo.py 1500 someIDstring
-
-// partner 2
-$ python3 mpc_demo.py 2499 someIDstring
+$ python3 mpc_demo.py -lat 40.635 -lon -73.981 
 ```
 
-The ID string argument can be anything as long as it is UNIQUE, if you chose an already used execution ID you could receive bad/wrong results.
-
-The MPC engine will analyse the integer args from both clients and output a single bit as to whether or not these ints are within a range of 1000 of each other (`1` for in range `0` otherwise). What is important here is that this calculation is happening **without the servers learning anything about the client's private integers, or even the resulting bit of the computation**. Only the clients locally reconstruct the results that the servers distributedly computed in a zero-knowledge way. Note that since the server-client connections are not using TLS (and a few other details, like the reuse of multiplication triples) this is for demo purposes only and NOT FULLY SECURED.
+Note that since the server-client connections are not using TLS (and a few other details, like the reuse of multiplication triples) this is for demo purposes only and NOT FULLY SECURED.
 
 ### Local demo
 
@@ -37,7 +33,7 @@ $ python3 local_mpc_test.py
 
 
 - `local_mpc_network.py`: This spawns a 3 node MPC network on your local machine.
-- `local_mpc_test.py`: This spawns two clients which both send a request to the MPC servers with a secret shared integer as input. The MPC servers compute whether or not the integers 'intersect' (are within a radius of 1000) without ever revealing the two integers, and return the results which the clients locally 'decrypt'
+- `local_mpc_test.py`: This spawns a client to query the server with goelocal coordinates, locally running the same secure computation as in the 'live' demo above.
 
 ## Package Overview
 

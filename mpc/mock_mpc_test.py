@@ -3,7 +3,7 @@ from shamir import Shamir
 from triples import gen_triples
 from dispatcher import Dispatcher
 from multiprocessing import Queue, Process
-import time
+import time, asyncio
 
 def consumer(mq, n, result, t, processes, reflect):
     vals = []
@@ -15,12 +15,14 @@ def consumer(mq, n, result, t, processes, reflect):
         reconstructed = reconstructed[int(len(reconstructed)/2):]+reconstructed[:int(len(reconstructed)/2)]
     assert eval('0b'+reconstructed) == eval('0b'+result), "result incorrect"
 
-def run_circuit_process(t, n, c_path, index, queues, main_queue, inputs, triples):
+async def eval_circuit(t, n, c, index, queues, main_queue, inputs, triples):
     shamir = Shamir(t, n)
     dispatcher = Dispatcher(t, n, index, queues, "--UNIQUE COMPUTATION ID--")
-    c = Circuit(c_path, ['S' for _ in range(len(inputs))])
-    outputs = c.evaluate(inputs, shamir=shamir, dispatcher=dispatcher, triples=triples)
+    outputs = await c.evaluate(inputs, shamir=shamir, dispatcher=dispatcher, triples=triples)
     main_queue.put(outputs)
+
+def run_circuit_process(t, n, c, index, queues, main_queue, inputs, triples):
+    asyncio.run(eval_circuit(t, n, c, index, queues, main_queue, inputs, triples))
 
 def test_mpc(t, n, c_path, n_triples, inputs, result, reflect=False):
     triples = gen_triples(t, n, n_triples)
@@ -28,11 +30,15 @@ def test_mpc(t, n, c_path, n_triples, inputs, result, reflect=False):
     queues = [Queue() for _ in range(n)]
     share_inputs = [Shamir(t, n).share_bitstring_secret(i) for i in inputs]
     processes = []
+    n_inputs = 0
+    for si in share_inputs:
+        n_inputs += len(si[0])
+    c = Circuit(c_path, ['S' for _ in range(n_inputs)])
     for i in range(n):
         inputs = []
         for si in share_inputs:
             inputs.extend(si[i])
-        p = Process(target=run_circuit_process, args=(t, n, c_path, i+1, queues, mq, inputs, triples[i]))
+        p = Process(target=run_circuit_process, args=(t, n, c, i+1, queues, mq, inputs, triples[i]))
         processes.append(p)
     start = time.time()
     for p in processes:

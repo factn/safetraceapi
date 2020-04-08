@@ -2,25 +2,38 @@
 from client import Client
 import asyncio, random, time
 
-async def test_mpc_intersection(clients, number):
+async def test_mpc_intersection(client, i):
 	pid = ''.join([random.choice([i for i in 'abcdef123456789']) for _ in range(10)])
-	nums = [random.choice(range(1,3001)) for _ in range(2)]
+	c_x = 40.63500
+	c_y = -73.96000
+	bcx = round((c_x+90)*100000)
+	bcy = round((c_y+180)*100000)
+	x = random.choice(range(bcx-12000, bcx+12000)) # slightly larger than query radius
+	y = random.choice(range(bcy-12000, bcy+12000)) # slightly larger than query radius
 	result = 0
-	if (nums[0]-nums[1])**2 < 1000**2:
+	if (x-bcx)**2 + (y-bcy)**2 < 8000**2:
 		result = 1
 	start = time.time()
-	tasks = [clients[i].operation(nums[i], pid) for i in range(2)]
-	answers = await asyncio.gather(*tasks)
+	answer = await client.operation(x, y, pid)
 	took = round(time.time()-start, 4)
-	for a in answers:
-		assert int(a) == result, "reconstructed wrong result"
-	print(f"PASS intersection {number}, time: {took}")
+	assert int(answer) == result, "reconstructed wrong result"
+	if result == 1:
+		print(f"PASS {i}, time: {took} (in region)")
+	else:
+		print(f"PASS {i}, time: {took} (not in region)")
+
+async def test_concurrent_mpc_ops(clients, j):
+	tasks = []
+	for k in range(len(clients)):
+		tasks.append(test_mpc_intersection(clients[j], (len(clients)*j)+k))
+	await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
 	# NOTE: MUST run local_mpc_network.py in a separate process for this test to work
+	n_simultaneous_queries = 3
 	idx2node={1: ('0.0.0.0', 8000), 2: ('0.0.0.0', 8001), 3: ('0.0.0.0', 8002)}
-	clients = [Client(1,3, idx2node) for _ in range(2)]
-	for i in range(3):
-		asyncio.run(test_mpc_intersection(clients, i+1))
-
-
+	client = Client(1,3, idx2node)
+	start = time.time()
+	for j in range(3):
+		asyncio.run(test_mpc_intersection(client, j))
+	print(f"ALL TESTS PASSED, total time: {round(time.time()-start, 4)}")
