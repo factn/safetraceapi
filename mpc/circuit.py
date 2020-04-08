@@ -1,4 +1,5 @@
 from shamir import Share
+import asyncio
 
 class Circuit:
 
@@ -16,7 +17,7 @@ class Circuit:
 			if gate[1] != None:
 				self.circuit_layers[gate[0][1]].append((i, gate[0][2], gate[1]))
 
-	def evaluate(self, inputs, shamir=None, dispatcher=None, triples=None):
+	async def evaluate(self, inputs, shamir=None, dispatcher=None, triples=None):
 		tape = [None for _ in range(self.tape_len)]
 		tape[0] = 0
 		tape[1] = 1
@@ -26,7 +27,7 @@ class Circuit:
 			layer = self.circuit_layers[i]
 			x_shares = []
 			y_shares = []
-			indexes = []
+			indexes = [gate[0] for gate in layer if gate[1]==True]
 			for gate in layer:
 				if not gate[1]:
 					if gate[2][-1] == 'XOR':
@@ -36,19 +37,18 @@ class Circuit:
 					else:
 						raise ValueError(f"Improperly formatted gate: {gate}")
 				else:
-					indexes.append(gate[0])
 					x_shares.append(tape[gate[2][-3]])
 					y_shares.append(tape[gate[2][-2]])
 			if len(indexes) > 0:
-				trips = triples[:len(indexes)]
+				round_ts = triples[:len(indexes)]
 				triples = triples[len(indexes):]
-				msg = shamir.mul_gates_round_1(x_shares, y_shares, trips)
 				#print(f"Circuit {dispatcher.index} sending MPC messages for round {i}")
+				msg = shamir.mul_gates_round_1(x_shares, y_shares, round_ts)
 				dispatcher.broadcast("MUL", i, msg)
 				#print(f"Circuit {dispatcher.index} collecting MPC messages for round {i}")
 				resps = dispatcher.collect(i)
 				resps.append(msg)
-				vals = shamir.mul_gates_round_2(x_shares, y_shares, resps, [j.c for j in trips])
+				vals = shamir.mul_gates_round_2(x_shares, y_shares, resps, [t.c for t in round_ts])
 				for k in range(len(indexes)):
 					tape[indexes[k]] = vals[k]
 		return [tape[k] for k in self.output_indexes]
