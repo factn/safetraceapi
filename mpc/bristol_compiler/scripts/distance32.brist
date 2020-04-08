@@ -1,0 +1,23 @@
+in bit32 zero
+in bit32 x
+in bit32 y
+in bit32 cx
+in bit32 cy
+in bit32 rsq
+var bit64 x64 = x:zero
+var bit64 y64 = y:zero
+var bit64 cx64 = cx:zero
+var bit64 cy64 = cy:zero
+var bit64 d1 = Sub64(x64, cx64)
+var bit64 d2 = Sub64(y64, cy64)
+var bit64 d1sq = Mul64Mod(d1, d1)
+var bit64 d2sq = Mul64Mod(d2, d2)
+var bit64 d = Add64(d1sq, d2sq)
+var bit32 dls = d[0:32]
+var bit32 dms = d[32:64]
+var bit64 testZero = dms:zero
+var bit isZ = IsZero64(testZero)
+var bit isLT = LessThan32(dls, rsq)
+var bit o = And(isLT, isZ)
+out bit o
+

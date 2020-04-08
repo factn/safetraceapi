@@ -29,7 +29,8 @@ class Server:
 			else:
 				mpc_send_queues[self.idx2peer[i]] = self.queues[i-1]
 		self.mpc_client = Process(target=p2p.run_mpc_msg_sender, args=(mpc_send_queues,))
-		self.active_operations = {}
+		self.active_operations = []
+		self.circuit = Circuit(os.path.join(self.circuit_dir, 'dist32.txt'), ['V' for _ in range(32)]+['S' if i != 31 else 'V' for i in range(32)]+['S' if i != 31 else 'V' for i in range(32)]+['V' for i in range(96)])
 
 	def start_mpc_server(self):
 		if not self.mpc_server.is_alive():
@@ -82,55 +83,39 @@ class Server:
 			data = await reader.readline()
 			data = data.strip()
 			msg = json.loads(data.decode())
-			if msg['uuid'] in self.active_operations:
-				print(f"Execute operation {msg['uuid']}")
-				resp = await self.execute_operation(msg)
-				r = json.dumps(resp)
-				writer.write(str.encode(r+'\n'))
-				await writer.drain()
-				self.active_operations[msg['uuid']][2].write(str.encode(r+'\n'))
-				await self.active_operations[msg['uuid']][2].drain()
-				self.active_operations[msg['uuid']][2].close()
-				self.active_operations.pop(msg['uuid'], None)
-				writer.close()
-			else:
-				print(f"Queue operation {msg['uuid']}")
-				inputs = deserialize_shares(msg['inputs'])
-				# TODO: TRIPLES CURRENTLY MOCKED (should be distributedly created in the background, and never reused) THIS BREAKS SECURITY.
-				with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f'test_triples/{self.index}'), 'r') as f:
-					data = f.read()
-				data = json.loads(data)
-				triples = deserialize_triples(data['data'])
-				self.active_operations[msg['uuid']] = (inputs, triples, writer)
+			print(f'Executing operation {msg["uuid"]}')
+			with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f'test_triples/{self.index}'), 'r') as f:
+				data = f.read()
+			data = json.loads(data)
+			triples = deserialize_triples(data['data'])
+			resp = await self.execute_operation(msg, 40.63500, -73.96000, 0.08, triples)
+			r = json.dumps(resp)
+			writer.write(str.encode(r+'\n'))
+			await writer.drain()
+			writer.close()
 		except:
 			writer.close()
 
-	async def execute_operation(self, msg):
-		inputs2 = deserialize_shares(msg['inputs'])
-		inputs1 = self.active_operations[msg['uuid']][0]
-		triples = self.active_operations[msg['uuid']][1]
-		m = Dispatcher(self.t, self.n, self.index, self.queues, msg['uuid']+'-sub')
+	async def execute_operation(self, msg, c_x, c_y, r, triples):
+		x_inputs = deserialize_shares(msg['x_inputs'])
+		y_inputs = deserialize_shares(msg['y_inputs'])
+		if len(x_inputs) != 31 or len(y_inputs) != 31:
+			return {'status': 'fail', 'reason':'inputs must be exactly 31 bits'}
+		x_inputs.append(0)
+		y_inputs.append(0)
+		rsq = round((r*100000))**2
+		c_x = round((c_x + 90)*100000)
+		c_y = round((c_y + 180)*100000)
+		cx_bits = [int(b) for b in bin(c_x)[2:]]
+		cy_bits = [int(b) for b in bin(c_y)[2:]]
+		rsq_bits = [int(b) for b in bin(rsq)[2:]]
+		all_constant_bits = []
+		for bits in (cx_bits, cy_bits, rsq_bits):
+			if len(bits) < 32:
+				cbs = [0 for _ in range(32-len(bits))]+ bits
+				all_constant_bits.extend(cbs[::-1])
+		inputs = [0 for _ in range(32)]+x_inputs+y_inputs+all_constant_bits
+		d = Dispatcher(self.t, self.n, self.index, self.queues, msg['uuid'])
 		s = Shamir(self.t, self.n)
-		subtract = Circuit(os.path.join(self.circuit_dir, 'sub64.txt'), ['S' for _ in range(128)])
-		outputs1 = subtract.evaluate(inputs1+inputs2, shamir=s, dispatcher=m, triples=triples[:300])
-		triples = triples[300:]
-		m.uuid = msg['uuid']+'-mul'
-		mul = Circuit(os.path.join(self.circuit_dir, 'mul64mod.txt'), ['S' for _ in range(128)])
-		outputs2 = mul.evaluate(outputs1+outputs1, shamir=s, dispatcher=m, triples=triples[:5000])
-		triples = triples[5000:]
-		m.uuid = msg['uuid']+'-eqz'
-		eqz = Circuit(os.path.join(self.circuit_dir, 'eqzero64.txt'), ['S' for _ in range(32)]+['V' for _ in range(32)])
-		bit1 = eqz.evaluate(outputs2[32:]+[0 for _ in range(32)], shamir=s, dispatcher=m, triples=triples[200:])
-		triples = triples[200:]
-		m.uuid = msg['uuid']+'-lt'
-		br = bin(1000000)[2:] # Hardcoded radius of intersection r = 1000
-		while len(br) < 32:
-			br = '0'+br
-		lt = Circuit(os.path.join(self.circuit_dir, 'lessthan32.txt'), ['S' for _ in range(32)]+['V' for _ in range(32)])
-		bit2 = lt.evaluate(outputs2[:32]+[int(i) for i in br[::-1]], shamir=s, dispatcher=m, triples=triples[400:])
-		triples = triples[:400]
-		m.uuid = msg['uuid']+'-and'
-		bit1.extend(bit2)
-		c = Circuit(os.path.join(self.circuit_dir, 'mul2.txt'), ['S' for _ in range(2)])
-		out = c.evaluate(bit1, shamir=s, dispatcher=m, triples=triples)
-		return {'uuid': msg['uuid'], 'result': serialize_shares(out)}	
+		out = await self.circuit.evaluate(inputs, shamir=s, dispatcher=d, triples=triples)
+		return {'uuid': msg['uuid'], 'result': serialize_shares(out)}
