@@ -1,4 +1,5 @@
 from client import Client
+import random, sys
 
 '''
 Pass any geo-coordinates in the Northern Hemisphere of the globe and the
@@ -13,18 +14,14 @@ $ python3 mpc_demo.py -lat 40.6350 -lon -73.95
 '''
 
 if __name__ == '__main__':
-	import getopt
-	import sys
-	
 	argv = sys.argv[1:]
-	opts, args = getopt.getopt(argv, 'lat:lon:')
 	x = None
 	y = None
-	for opt in opts:
-		if opt[0] == '-lat':
-			x = float(opt[1])
-		if opt[1] == '-lon':
-			y = float(opt[1])
+	for i in range(len(argv)):
+		if argv[i] == '-lat' and len(argv)>i+1:
+			x = float(argv[i+1])
+		if argv[i] == '-lon' and len(argv)>i+1:
+			y = float(argv[i+1])
 	if x == None or y == None:
 		raise ValueError('must pass a geolocal coordinate using -lat and -lon options')
 	if x > 90 or x < -1*90:
