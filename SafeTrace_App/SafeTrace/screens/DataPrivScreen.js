@@ -22,7 +22,7 @@ export default function DataPrivScreen() {
       }),
     }).then((response) => response.json())
     .then((json) => {
-      console.log('Submitted Symptoms'); //TODO: remove
+      console.log('removed device'); //TODO: remove
       console.log(json);
       console.log(json.message);
       if (typeof json.error != 'undefined'){

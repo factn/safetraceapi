@@ -70,7 +70,8 @@ export const getObjectForKey = async (key) => {
 
   //store and get the user's private key
 
-  function handleSymptomEntry () {
+  function encryptSymptomEntry () {
+    //console.log(enteredSymptoms);
     fetch('https://safetraceapi.herokuapp.com/api/encryption', {
       method: 'POST',
       headers : {
@@ -85,14 +86,46 @@ export const getObjectForKey = async (key) => {
         'device_id' : deviceID,
         'row_type' : 2,
         'symptoms' : enteredSymptoms,
+        //'symptoms' : 'cough,fever',
         'infection_status' : 1,
       }),
     }).then((response) => response.json())
     .then((json) => {
-      console.log('Submitted Symptoms'); //TODO: remove
+      console.log('Submitted Symptoms for encryption'); //TODO: remove
       console.log(json);
       console.log(json.encrypted_body);
-      return json.encrypted_body;
+      submitSymptomEntry(json.encrypted_body);
+      //return json.encrypted_body;
+    })
+    .catch((error) => {
+      console.error(error);
+      return error;
+    });
+  }
+
+  function submitSymptomEntry (symptom_json){
+    //const symptom_json = encryptSymptomEntry();
+    
+    console.log(symptom_json);
+    fetch('https://safetraceapi.herokuapp.com/api/events', {
+      method: 'POST',
+      headers : {
+        'Content-Type': 'application/json',
+        'api_key': Constants.manifest.extra.API_KEY,
+      },
+      //body: symptom_json,
+      body:{
+        device_id: symptom_json.device_id,
+        infection_status: symptom_json.infection_status,
+        row_type: symptom_json.row_type,
+        symptoms: symptom_json.symptoms,
+      }
+    }).then((response) => response.json())
+    .then((json) => {
+      console.log('Submitted Encrypted Symptoms'); //TODO: remove
+      console.log(json);
+      console.log(json.event_id);
+      return json.event_id;
     })
     .catch((error) => {
       console.error(error);
@@ -154,7 +187,7 @@ export const getObjectForKey = async (key) => {
     <View style={styles.container}>
       <View style={styles.inputContainer}>
         <TextInput placeholder="Enter Symptoms" style={styles.input} onChangeText={symptomsInputHandler} value={enteredSymptoms}/>
-        <Button title="Submit Symptoms" onPress = {handleSymptomEntry}/>
+        <Button title="Submit Symptoms" onPress = {encryptSymptomEntry}/>
       </View>
       <View>
         <Button title="Sign Up" onPress = {handleSignupPress}/>
