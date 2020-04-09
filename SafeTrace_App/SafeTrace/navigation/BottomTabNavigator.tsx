@@ -4,7 +4,7 @@ import * as React from "react";
 import TabBarIcon from "../components/TabBarIcon";
 import HomeScreen from "../screens/HomeScreen";
 import LinksScreen from "../screens/LinksScreen";
-import DataPrivScreen from "../screens/DataPrivScreen";
+import DataPrivScreen from "../screens/DataPrivacyScreen";
 //TODO: update this
 
 interface ITabNavProps {
