@@ -9,7 +9,7 @@ import _test_script_utils
 import _test_api_utils
 import random
 
-LOCAL = True
+LOCAL = False
 _permissions.BASE_URL = _clients.BASE_URL = _events.BASE_URL = _devices.BASE_URL = 'http://localhost:3000' if LOCAL else 'https://safetraceapi.herokuapp.com'
 
 '''CLEAR THE DATABASE '''

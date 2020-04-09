@@ -108,6 +108,32 @@ module.exports.get_events = async (req, response, next) => {
 };
 
 
+
+
+
+
+function assertEventFormats (request) {
+    let action = 'ASSERT POST EVENT';
+
+    assertBodyKey (request, consts.DEVICE_ID, action);
+    assertBodyKey (request, consts.ROW_TYPE, action);
+    // GPS
+    if (request.body[consts.ROW_TYPE] === 0) {
+        assertBodyKey (request, consts.LONGITUDE, action + ' FOR GPS DATA');
+        assertBodyKey (request, consts.LATITUDE, action + ' FOR GPS DATA');
+    }
+    // BLUETOOTH
+    else if (request.body[consts.ROW_TYPE] === 1) {
+        assertBodyKey (request, consts.CONTACT_ID, action + ' FOR BLUETOOTH DATA');
+        assertBodyKey (request, consts.CONTACT_LEVEL, action + ' FOR BLUETOOTH DATA');
+    }
+    // SURVEY
+    else if (request.body[consts.ROW_TYPE] === 2) {
+        assertBodyKey (request, consts.SYMPTOMS, action + ' FOR SURVEY DATA');
+        assertBodyKey (request, consts.INFECTION_STATUS, action + ' FOR SURVEY DATA');
+    }
+}
+
 /*
 ASSUMES REQUEST BODY HAS ALREADY BEEN ENCRYPTED:
 
@@ -124,6 +150,9 @@ OUTPUT
 */
 module.exports.post_event = async (req, response, next) => {
     try { 
+
+        assertEventFormats (req);
+
         // adds single qoutes around string arguments for sql queries
         function stringifyArg(arg) {
             return typeof arg === 'string' ? `'${arg}'` : arg;
@@ -136,9 +165,15 @@ module.exports.post_event = async (req, response, next) => {
         // format the keys for sql columns
         let columns = keys.join(", ");   
 
+        let sql = `INSERT INTO ${TABLE} (${columns}) VALUES (${values}) RETURNING ${EVENT_ID};`;
+
+        response.status(201).json( {
+            sql: sql
+        } );
+        
         // add the event row
-        const result = await db.query(`INSERT INTO ${TABLE} (${columns}) VALUES (${values}) RETURNING ${EVENT_ID};`);
-        response.status(201).json( result.rows[0] );
+        // const result = await db.query(sql);
+        // response.status(201).json( result.rows[0] );
     }
     catch (e) { next(e); }
 }
