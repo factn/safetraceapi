@@ -1,0 +1,16 @@
+name: CI
+on:
+  - push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - { uses: actions/checkout@v1 }
+      - { name: "Install Expo", run: "sudo npm i -g expo-cli" }
+      # - {
+      #     name: "Login to Expo",
+      #     run: "expo login -u yourlogin -p yourpassword",
+      #   }
+      - { name: "Install packages", run: "sudo yarn" }
+      - { name: "Lint Code", run: "yarn lint" }
+      - { name: "Test Code", run: "yarn testFinal" }
