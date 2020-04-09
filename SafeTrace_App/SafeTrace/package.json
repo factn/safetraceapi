@@ -26,19 +26,23 @@
     "expo-web-browser": "~8.1.0",
     "react": "~16.13.1",
     "react-dom": "~16.13.1",
-    "react-native": "0.62.2",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-37.0.1.tar.gz",
     "react-native-config": "^1.0.0",
     "react-native-gesture-handler": "~1.6.1",
     "react-native-safe-area-context": "0.7.3",
     "react-native-screens": "~2.2.0",
-    "react-native-web": "~0.12.2"
+    "react-native-web": "~0.12.2",
+    "rxjs": "^6.5.5",
+    "styled-components": "^5.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",
     "@types/react": "^16.9.33",
     "@types/react-native": "^0.62.2",
+    "@types/styled-components": "^5.0.1",
     "babel-preset-expo": "~8.1.0",
     "jest-expo": "~37.0.0",
+    "reactotron-react-native": "^5.0.0",
     "typescript": "^3.8.3"
   },
   "private": true
