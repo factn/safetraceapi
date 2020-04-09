@@ -14,10 +14,10 @@ import { Theme } from './Theme';
 import { configureStore } from './store';
 
 interface IProps {
-  skipLoadingScreen: any;
+  skipLoadingScreen?: any;
 }
 
-export default function App(props: IProps) {
+export default (props: IProps) => {
   const [isLoadingComplete, setLoadingComplete] = useState(false);
   const [initialNavigationState, setInitialNavigationState] = React.useState();
   const containerRef = useRef();
