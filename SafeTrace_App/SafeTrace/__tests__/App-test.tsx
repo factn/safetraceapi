@@ -1,6 +1,7 @@
 import React from 'react';
 // import NavigationTestUtils from 'react-navigation/NavigationTestUtils';
 import renderer from 'react-test-renderer';
+import { shallow } from 'enzyme';
 
 import App from '../App';
 
@@ -14,10 +15,18 @@ jest.mock('expo', () => ({
   }
 }));
 
+const createTestProps = (props: object) => ({
+  ...props
+});
+
 // jest.mock('../navigation/AppNavigator', () => 'AppNavigator');
 
 describe('App', () => {
   jest.useFakeTimers();
+  const props = createTestProps({});
+  const wrapper = shallow<any>(<App {...props} />);
+
+  console.log('--------', wrapper);
 
   beforeEach(() => {
     // NavigationTestUtils.resetInternalState();
@@ -26,6 +35,11 @@ describe('App', () => {
   it('renders correctly', () => {
     renderer.create(<App />);
   })
+
+  // TODO: Fix test
+  // it('should render a <View />', () => {
+  //   expect(wrapper.find('RootNavigator')).toHaveLength(1);
+  // });
 
   // TODO: Fix test
   // it('has 1 child', () => {
