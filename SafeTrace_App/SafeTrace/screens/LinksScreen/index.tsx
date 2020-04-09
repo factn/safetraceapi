@@ -1,7 +1,7 @@
-import React from "react";
-import { View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { WebBrowser } from "expo";
+import React from 'react';
+import { View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { WebBrowser } from 'expo';
 
 import {
   BaseLayout,
@@ -9,7 +9,7 @@ import {
   OptionIconContainer,
   OptionLabelContainer,
   OptionLabel
-} from "./styles";
+} from './styles';
 
 interface IOptionButtonProps {
   icon: string;
@@ -21,7 +21,7 @@ interface IOptionButtonProps {
 const OptionButton = ({ icon, label, onPress, isLastOption }: IOptionButtonProps) => {
   return (
     <OptionButtonContainer lastOption={isLastOption} onPress={onPress}>
-      <View style={{ flexDirection: "row" }}>
+      <View style={{ flexDirection: 'row' }}>
         <OptionIconContainer>
           <Ionicons name={icon} size={22} color="rgba(0,0,0,0.35)" />
         </OptionIconContainer>
@@ -41,22 +41,22 @@ const LinksScreen = () => {
       <OptionButton
         icon="md-school"
         label="Read the Expo documentation"
-        onPress={() => WebBrowser.openBrowserAsync("https://safetraceapi.org")}
+        onPress={() => WebBrowser.openBrowserAsync('https://safetraceapi.org')}
       />
 
       <OptionButton
         icon="md-compass"
         label="Read the React Navigation documentation"
         onPress={() =>
-          WebBrowser.openBrowserAsync("https://reactnavigation.org")
+          WebBrowser.openBrowserAsync('https://reactnavigation.org')
         }
       />
 
       <OptionButton
         icon="ios-chatboxes"
         label="Ask a question on the forums"
-        onPress={() => WebBrowser.openBrowserAsync("https://forums.expo.io")}
-        isLastOption
+        onPress={() => WebBrowser.openBrowserAsync('https://forums.expo.io')}
+        isLastOption={true}
       />
     </BaseLayout>
   );

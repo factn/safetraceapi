@@ -1,2 +1,2 @@
-export * from "./StyledText";
-export * from "./TabBarIcon";
+export * from './StyledText';
+export * from './TabBarIcon';

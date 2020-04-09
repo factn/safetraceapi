@@ -1,11 +1,11 @@
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import * as React from "react";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import * as React from 'react';
 
-import TabBarIcon from "../components/TabBarIcon";
-import HomeScreen from "../screens/HomeScreen";
-import LinksScreen from "../screens/LinksScreen";
-import DataPrivScreen from "../screens/DataPrivacyScreen";
-//TODO: update this
+import TabBarIcon from '../components/TabBarIcon';
+import HomeScreen from '../screens/HomeScreen';
+import LinksScreen from '../screens/LinksScreen';
+import DataPrivScreen from '../screens/DataPrivacyScreen';
+// TODO: update this
 
 interface ITabNavProps {
   navigation: any;
@@ -13,7 +13,7 @@ interface ITabNavProps {
 }
 
 const BottomTab = createBottomTabNavigator();
-const INITIAL_ROUTE_NAME = "Home";
+const INITIAL_ROUTE_NAME = 'Home';
 
 export default function BottomTabNavigator({
   navigation,
@@ -30,7 +30,7 @@ export default function BottomTabNavigator({
         name="Home"
         component={HomeScreen}
         options={{
-          title: "Home",
+          title: 'Home',
           tabBarIcon: ({ focused }) => (
             <TabBarIcon focused={focused} name="md-code-working" />
           ),
@@ -40,7 +40,7 @@ export default function BottomTabNavigator({
         name="Contact History"
         component={LinksScreen}
         options={{
-          title: "Resources",
+          title: 'Resources',
           tabBarIcon: ({ focused }) => (
             <TabBarIcon focused={focused} name="md-book" />
           ),
@@ -50,7 +50,7 @@ export default function BottomTabNavigator({
         name="Data and Privacy"
         component={DataPrivScreen}
         options={{
-          title: "Resources",
+          title: 'Resources',
           tabBarIcon: ({ focused }) => (
             <TabBarIcon focused={focused} name="md-book" />
           ),
@@ -65,10 +65,10 @@ function getHeaderTitle(route: any) {
     route.state?.routes[route.state.index]?.name ?? INITIAL_ROUTE_NAME;
 
   switch (routeName) {
-    case "Home":
-      return "SafeTrace";
-    case "Links":
-      return "Links to learn more";
-    //TODO: update for privacy, etc. tabs
+    case 'Home':
+      return 'SafeTrace';
+    case 'Links':
+      return 'Links to learn more';
+    // TODO: update for privacy, etc. tabs
   }
 }

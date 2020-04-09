@@ -6,7 +6,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "test": "jest --watchAll"
+    "test": "jest --watchAll",
+    "lint": "tslint --project tsconfig.json"
   },
   "jest": {
     "preset": "jest-expo"
@@ -42,7 +43,11 @@
     "reduxsauce": "^1.1.2",
     "rxjs": "^6.5.5",
     "seamless-immutable": "^7.1.4",
-    "styled-components": "^5.1.0"
+    "styled-components": "^5.1.0",
+    "tslint": "^6.1.1",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-eslint-rules": "^5.4.0",
+    "tslint-react": "^4.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",

@@ -1,6 +1,6 @@
-import styled from "styled-components/native";
-import { StyleSheet } from "react-native";
-import { ScrollView, RectButton } from "react-native-gesture-handler";
+import styled from 'styled-components/native';
+import { StyleSheet } from 'react-native';
+import { ScrollView, RectButton } from 'react-native-gesture-handler';
 
 export const BaseLayout = styled(ScrollView)`
   flex: 1;

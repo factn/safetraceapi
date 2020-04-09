@@ -10,7 +10,7 @@ export default (containerRef: any) => {
         screens: {
           Home: 'home',
           Links: 'links',
-          //Settings: 'settings',
+          // Settings: 'settings',
         },
       },
     },

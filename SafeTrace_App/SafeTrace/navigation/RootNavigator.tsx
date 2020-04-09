@@ -1,8 +1,8 @@
-import React, { useRef, useState } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
+import React, { useRef, useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
-import BottomTabNavigator from "./BottomTabNavigator";
+import BottomTabNavigator from './BottomTabNavigator';
 
 const Stack = createStackNavigator();
 

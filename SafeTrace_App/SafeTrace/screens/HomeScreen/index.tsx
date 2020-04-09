@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { View, Alert, Text } from "react-native";
-import { from, of, Observable } from "rxjs";
-import { map, tap, catchError, switchMap } from "rxjs/operators";
-import Constants from "expo-constants";
-import { connect } from "react-redux";
+import React, { useState } from 'react';
+import { View, Alert, Text } from 'react-native';
+import { from, of, Observable } from 'rxjs';
+import { map, tap, catchError, switchMap } from 'rxjs/operators';
+import Constants from 'expo-constants';
+import { connect } from 'react-redux';
 
-import AppRedux from "../../store/AppRedux";
-import { BaseLayout, InputContainer, Input, Button } from "./styles";
+import AppRedux from '../../store/AppRedux';
+import { BaseLayout, InputContainer, Input, Button } from './styles';
 
 const DEVICE_ID = Constants.installationId;
 const API_KEY = Constants.manifest.extra.API_KEY;
@@ -17,7 +17,7 @@ interface IProps {
 }
 
 const HomeScreen = (props: IProps) => {
-  const [enteredSymptoms, setEnteredSymptoms] = useState("");
+  const [enteredSymptoms, setEnteredSymptoms] = useState('');
 
   const symptomsInputHandler = (enteredText: string) => {
     setEnteredSymptoms(enteredText);
@@ -25,22 +25,22 @@ const HomeScreen = (props: IProps) => {
 
   const encryptSymptomEntry = () => {
     from(
-      fetch("https://safetraceapi.herokuapp.com/api/encryption", {
-        method: "POST",
+      fetch('https://safetraceapi.herokuapp.com/api/encryption', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           api_key: Constants.manifest.extra.API_KEY,
-          //"device_key": "cb94a1442fc90ee43d17a4284ea26675a432fc4c7a1d6d0905c23ce5eaa0f391"
+          // 'device_key': 'cb94a1442fc90ee43d17a4284ea26675a432fc4c7a1d6d0905c23ce5eaa0f391'
           device_key:
-            "250765803750a51bed76023b5491c71c992e8d42f28afecc15f12411c7eb9ecc",
-          //"device_key": private_key TODO: fix this, add from memory
+            '250765803750a51bed76023b5491c71c992e8d42f28afecc15f12411c7eb9ecc',
+          // 'device_key': private_key TODO: fix this, add from memory
         },
         body: JSON.stringify({
-          //TODO: make device id, row type, infection status dynamic
+          // TODO: make device id, row type, infection status dynamic
           device_id: DEVICE_ID,
           row_type: 2,
           symptoms: enteredSymptoms,
-          //"symptoms" : "cough,fever",
+          // 'symptoms' : 'cough,fever',
           infection_status: 1,
         }),
       })
@@ -48,17 +48,17 @@ const HomeScreen = (props: IProps) => {
       .pipe(
         map((resp: any) => resp.json()),
         switchMap((resp) => submitSymptomEntry(resp.encrypted_body)),
-        tap((resp) => console.info("Submitted Response: ", resp))
+        tap((resp) => console.info('Submitted Response: ', resp))
       )
       .subscribe();
   };
 
   const submitSymptomEntry = (payload: any): Observable<any> => {
     return from(
-      fetch("https://safetraceapi.herokuapp.com/api/events", {
-        method: "POST",
+      fetch('https://safetraceapi.herokuapp.com/api/events', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           api_key: Constants.manifest.extra.API_KEY,
         },
         body: {
@@ -73,10 +73,10 @@ const HomeScreen = (props: IProps) => {
 
   const handleSignupPress = () => {
     from(
-      fetch("https://safetraceapi.herokuapp.com/api/devices", {
-        method: "POST",
+      fetch('https://safetraceapi.herokuapp.com/api/devices', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           api_key: API_KEY,
         },
         body: JSON.stringify({
@@ -88,11 +88,11 @@ const HomeScreen = (props: IProps) => {
         map((resp) => resp.json()),
         tap((resp: any) => console.info(`Signup Request Response: `, res)),
         tap((resp) => {
-          if (typeof resp.error !== "undefined") {
+          if (typeof resp.error !== 'undefined') {
             Alert.alert(
-              "Device Already Registered Error",
+              'Device Already Registered Error',
               resp.error,
-              [{ text: "OK", onPress: () => console.log("OK Pressed") }],
+              [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
               { cancelable: false }
             );
           } else {
@@ -100,7 +100,7 @@ const HomeScreen = (props: IProps) => {
           }
         }),
         catchError((err) => {
-          console.error("Caught error while submitting signup form. ", err);
+          console.error('Caught error while submitting signup form. ', err);
 
           return of(err);
         })
