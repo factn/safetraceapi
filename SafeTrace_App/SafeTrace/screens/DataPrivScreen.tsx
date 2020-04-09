@@ -1,47 +1,47 @@
-import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
-import * as React from 'react';
-import { StyleSheet, Text, View, Alert, Button } from 'react-native';
-import { RectButton, ScrollView } from 'react-native-gesture-handler';
-import Constants from 'expo-constants';
+import { Ionicons } from "@expo/vector-icons";
+import * as WebBrowser from "expo-web-browser";
+import * as React from "react";
+import { StyleSheet, Text, View, Alert, Button } from "react-native";
+import { RectButton, ScrollView } from "react-native-gesture-handler";
+import Constants from "expo-constants";
 
 export default function DataPrivScreen() {
 
   const deviceID = Constants.installationId
 
   function removeDevice () {
-    fetch('https://safetraceapi.herokuapp.com/api/devices', {
-      method: 'DELETE',
+    fetch("https://safetraceapi.herokuapp.com/api/devices", {
+      method: "DELETE",
       headers : {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         api_key: Constants.manifest.extra.API_KEY
       },
       body: JSON.stringify({
         //TODO: make device id, row type, infection status dynamic
-        'device_id' : deviceID,
+        "device_id" : deviceID,
       }),
     }).then((response) => response.json())
     .then((json) => {
-      console.log('removed device'); //TODO: remove
+      console.log("removed device"); //TODO: remove
       console.log(json);
       console.log(json.message);
-      if (typeof json.error != 'undefined'){
+      if (typeof json.error != "undefined"){
         console.log(json.error)
         Alert.alert(
-          'Account Deletion Error',
+          "Account Deletion Error",
           json.error,
           [
-            { text: 'OK', onPress: () => console.log('OK Pressed') },
+            { text: "OK", onPress: () => console.log("OK Pressed") },
           ],
           { cancelable: false }
         );
       }
       else{
         Alert.alert(
-          'Successfully Removed Your Device',
+          "Successfully Removed Your Device",
           json.message,
           [
-            { text: 'OK', onPress: () => console.log('OK Pressed') },
+            { text: "OK", onPress: () => console.log("OK Pressed") },
           ],
           { cancelable: false }
         );
@@ -64,7 +64,7 @@ export default function DataPrivScreen() {
 function OptionButton({ icon, label, onPress, isLastOption }) {
   return (
     <RectButton style={[styles.option, isLastOption && styles.lastOption]} onPress={onPress}>
-      <View style={{ flexDirection: 'row' }}>
+      <View style={{ flexDirection: "row" }}>
         <View style={styles.optionIconContainer}>
           <Ionicons name={icon} size={22} color="rgba(0,0,0,0.35)" />
         </View>
@@ -81,23 +81,23 @@ const styles = StyleSheet.create({
     padding: 50
   },
   inputContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 15
   },
   input: {
-    width: '50%',
-    borderBottomColor: 'black',
+    width: "50%",
+    borderBottomColor: "black",
     borderBottomWidth: 1
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   container: {
     flex: 1,
-    backgroundColor: '#fafafa',
+    backgroundColor: "#fafafa",
   },
   contentContainer: {
     paddingTop: 15,
@@ -106,19 +106,19 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   option: {
-    backgroundColor: '#fdfdfd',
+    backgroundColor: "#fdfdfd",
     paddingHorizontal: 15,
     paddingVertical: 15,
     borderWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: 0,
-    borderColor: '#ededed',
+    borderColor: "#ededed",
   },
   lastOption: {
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   optionText: {
     fontSize: 15,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     marginTop: 1,
   },
 });
