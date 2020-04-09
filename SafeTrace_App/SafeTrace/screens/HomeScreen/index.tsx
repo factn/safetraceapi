@@ -1,15 +1,22 @@
 import React, { useState } from "react";
-import { View, Alert } from "react-native";
+import { View, Alert, Text } from "react-native";
 import { from, of, Observable } from "rxjs";
 import { map, tap, catchError, switchMap } from "rxjs/operators";
 import Constants from "expo-constants";
+import { connect } from "react-redux";
 
+import AppRedux from "../../store/AppRedux";
 import { BaseLayout, InputContainer, Input, Button } from "./styles";
 
 const DEVICE_ID = Constants.installationId;
 const API_KEY = Constants.manifest.extra.API_KEY;
 
-const HomeScreen = () => {
+interface IProps {
+  performTest: any;
+  testVal: string;
+}
+
+const HomeScreen = (props: IProps) => {
   const [enteredSymptoms, setEnteredSymptoms] = useState("");
 
   const symptomsInputHandler = (enteredText: string) => {
@@ -112,7 +119,11 @@ const HomeScreen = () => {
         <Button title="Sign Up" onPress={handleSignupPress} />
       </InputContainer>
       <View>
-        <Button title="Sign Up" onPress={handleSignupPress} />
+        <Button title="Press me!" onPress={() => {
+          props.performTest('Hello World');
+          console.info(props.performTest);
+        }} />
+        <Text>Output from store: {props.testVal}</Text>
       </View>
     </BaseLayout>
   );
@@ -122,4 +133,16 @@ HomeScreen.navigationOptions = {
   header: null,
 };
 
-export default HomeScreen;
+const mapStateToProps = (state: any) => {
+  return {
+    testVal: state.app.val,
+  };
+}
+
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    performTest: (val: string) => dispatch(AppRedux.test(val))
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);

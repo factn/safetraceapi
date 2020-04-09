@@ -4,11 +4,14 @@ import { SplashScreen } from "expo";
 import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemeProvider } from "styled-components/native";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
 
 import { BaseLayout } from "./styles";
 import useLinking from "./navigation/useLinking";
 import RootNavigator from "./navigation/RootNavigator";
 import { Theme } from "./Theme";
+import { configureStore } from "./store";
 
 interface IProps {
   skipLoadingScreen: any;
@@ -19,6 +22,7 @@ export default function App(props: IProps) {
   const [initialNavigationState, setInitialNavigationState] = React.useState();
   const containerRef = useRef();
   const { getInitialState } = useLinking(containerRef);
+  const storeRef = configureStore();
 
   const StatusBarNode = Platform.OS === "ios" && (
     <StatusBar barStyle="default" />
@@ -56,10 +60,14 @@ export default function App(props: IProps) {
       <BaseLayout>
         {StatusBarNode}
         <ThemeProvider theme={Theme}>
-          <RootNavigator
-            containerRef={containerRef}
-            initialState={initialNavigationState}
-          />
+          <Provider store={storeRef.store}>
+            <PersistGate loading={null} persistor={storeRef.persistor}>
+              <RootNavigator
+                containerRef={containerRef}
+                initialState={initialNavigationState}
+              />
+            </PersistGate>
+          </Provider>
         </ThemeProvider>
       </BaseLayout>
     );
