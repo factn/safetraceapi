@@ -1,5 +1,4 @@
 from shamir import Share
-import asyncio
 
 class Circuit:
 
