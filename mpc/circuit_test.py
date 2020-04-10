@@ -124,6 +124,38 @@ def test_cleartext_dist32():
 	out_bit = asyncio.run(c.evaluate(inputs))
 	assert out_bit[0] == answer, "computed wrong value"
 
+def test_cleartext_addsub_example():
+	x = 1000
+	y = 2000
+	answer1 = (x+y)%(2**64)
+	answer2 = (x-y)%(2**64)
+
+	x_bits = [int(c) for c in bin(x)[2:]]
+	if len(x_bits)<64:
+		x_bits = [0 for _ in range(64 - len(x_bits))]+ x_bits
+
+	y_bits = [int(c) for c in bin(y)[2:]]
+	if len(y_bits)<64:
+		y_bits = [0 for _ in range(64 - len(y_bits))]+ y_bits
+	x_bits = list(reversed(x_bits))
+	y_bits = list(reversed(y_bits))
+	c = Circuit("bristol_circuits/example.txt", ['V' for _ in range(128)])
+	out_bits = asyncio.run(c.evaluate(x_bits+y_bits))
+	out_string = ''.join([str(i) for i in list(reversed(out_bits))])
+	assert eval('0b'+out_string[:64]) == answer2, "computed wrong value"
+	assert eval('0b'+out_string[64:]) == answer1, "computed wrong value"
+
+def test_cleartext_unnormalized_subregion_example():
+	answer = 300
+
+	inputs = [0 for _ in range(64)] + [1 for _ in range(1200)]
+
+	c = Circuit("bristol_circuits/unnormalized_subregion_100_10.txt", ['V' for _ in range(1264)])
+	out_bits = asyncio.run(c.evaluate(inputs))
+	out_string = ''.join([str(i) for i in list(reversed(out_bits))])
+	for i in range(10):
+		assert eval('0b'+out_string[i*64: (i+1)*64]) == answer, "computed wrong value"
+
 if __name__ == "__main__":
 	test_cleartext_add64()
 	test_cleartext_sub64()
@@ -131,5 +163,7 @@ if __name__ == "__main__":
 	test_cleartext_mul64()
 	test_cleartext_lessthan32()
 	test_cleartext_dist32()
+	test_cleartext_addsub_example()
+	test_cleartext_unnormalized_subregion_example()
 	print("PASS")
-
+	

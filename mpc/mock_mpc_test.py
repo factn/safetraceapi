@@ -145,6 +145,15 @@ def test_lessthan32_circuit():
             y_bin = '0'+y_bin
         test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result)
 
+def test_unnormalized_example():
+    t = 1
+    n = 3
+    c_path = "bristol_circuits/unnormalized_subregion_100_10.txt"
+    n_triples = 200000
+    inputs = ''.join(['0' for _ in range(64)]+['1' for _ in range(1200)])
+    
+        test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result)
+
 if __name__ == "__main__":
     print("--BEGIN ADD64 TEST--")
     test_add64_circuit()

@@ -29,12 +29,6 @@ class Circuit:
 			indexes = [gate[0] for gate in layer if gate[1]==True]
 			for gate in layer:
 				if not gate[1]:
-					if tape[gate[2][-3]] == None and tape[gate[2][-2]] == None:
-						raise ValueError(f"INPUTS NEVER SET: {gate}")
-					if tape[gate[2][-2]] == None:
-						raise ValueError(f"INPUT NEVER SET: {tape[gate[2][-2]]} in {gate}")
-					elif tape[gate[2][-3]] == None:
-						raise ValueError(f"INPUT NEVER SET: {tape[gate[2][-2]]} in {gate}")
 					if gate[2][-1] == 'XOR':
 						tape[gate[0]] = self.__XOR(tape[gate[2][-2]], tape[gate[2][-3]])
 					elif gate[2][-1] == 'AND':
