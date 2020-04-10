@@ -1,15 +1,13 @@
-# Multi Pary Computation
-
-[What is Secure Multi Party Computation?](https://en.wikipedia.org/wiki/Secure_multi-party_computation)
+# mpc-gf256
 
 ## Requirements
 
 - python 3.7+
 - gf256 module (`pip3 install gf256`)
 
-## Demo SafetraceMPC
+## Demo 
 
-The safetrace mpc engine demo is a *privacy preserving* geolocal intersection.  Choose any standard decimal degree geolocation on the globe and our MPC servers will evaluate whether or not the coordinate falls within Brooklyn, NY. The servers compute this intersection **without ever having access to the client's actual geo-coordinate or leakng any information about it**. The servers do not even learn the result of the computation (only the client can reconstruct the result bit from each of the servers partial results)
+The mpc engine demo is a *privacy preserving* geolocal intersection.  Choose any standard decimal degree geolocation on the globe and our MPC servers will evaluate whether or not the coordinate falls within Brooklyn, NY. The servers compute this intersection **without ever having access to the client's actual geo-coordinate or leakng any information about it**. The servers do not even learn the result of the computation (only the client can reconstruct the result bit from each of the servers partial results)
 
 To run the demo enter the safetrace/mpc directory. Run the demo and pass the latitude and longitude as options like so:
 
