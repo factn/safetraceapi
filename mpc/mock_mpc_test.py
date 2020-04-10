@@ -24,21 +24,20 @@ async def eval_circuit(t, n, c, index, queues, main_queue, inputs, triples):
 def run_circuit_process(t, n, c, index, queues, main_queue, inputs, triples):
     asyncio.run(eval_circuit(t, n, c, index, queues, main_queue, inputs, triples))
 
-def test_mpc(t, n, c_path, n_triples, inputs, result, reflect=False):
+def test_mpc(t, n, c_path, n_triples, all_inputs, result, reflect=False):
     triples = gen_triples(t, n, n_triples)
     mq = Queue()
     queues = [Queue() for _ in range(n)]
-    share_inputs = [Shamir(t, n).share_bitstring_secret(i) for i in inputs]
     processes = []
-    n_inputs = 0
-    for si in share_inputs:
-        n_inputs += len(si[0])
-    c = Circuit(c_path, ['S' for _ in range(n_inputs)])
+    itypes = []
+    for i in all_inputs[0]:
+        if i in [0, 1]:
+            itypes.append('V')
+        else:
+            itypes.append('S')
+    c = Circuit(c_path, itypes)
     for i in range(n):
-        inputs = []
-        for si in share_inputs:
-            inputs.extend(si[i])
-        p = Process(target=run_circuit_process, args=(t, n, c, i+1, queues, mq, inputs, triples[i]))
+        p = Process(target=run_circuit_process, args=(t, n, c, i+1, queues, mq, all_inputs[i], triples[i]))
         processes.append(p)
     start = time.time()
     for p in processes:
@@ -70,7 +69,8 @@ def test_add64_circuit():
         y_bin = bin(y)[2:]
         while len(y_bin) < 64:
             y_bin = '0'+y_bin
-        test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result)
+        inputs = Shamir(t, n).share_bitstring_secret(x_bin[::-1]+y_bin[::-1])
+        test_mpc(t, n, c_path, n_triples, inputs, result)
 
 def test_sub64_circuit():
     t = 2
@@ -86,19 +86,21 @@ def test_sub64_circuit():
         y_bin = bin(y)[2:]
         while len(y_bin) < 64:
             y_bin = '0'+y_bin
-        test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result)
+        inputs = Shamir(t, n).share_bitstring_secret(x_bin[::-1]+y_bin[::-1])
+        test_mpc(t, n, c_path, n_triples, inputs, result)
 
 def test_mul2_circuit():
     t = 2
     n = 5
     c_path = "bristol_circuits/mul2.txt"
-    n_triples = 500
+    n_triples = 2
     for x,y in [(0,1), (0,0), (1,1)]:
         result = (x*y)
         result = bin(result)[2:]
         x_bin = bin(x)[2:]
         y_bin = bin(y)[2:]
-        test_mpc(t, n, c_path, n_triples, [x_bin, y_bin], result)
+        inputs = Shamir(t, n).share_bitstring_secret(x_bin+y_bin)
+        test_mpc(t, n, c_path, n_triples, inputs, result)
 
 def test_mul64mod_circuit():
     t = 2
@@ -113,7 +115,8 @@ def test_mul64mod_circuit():
         y_bin = bin(y)[2:]
         while len(y_bin) < 64:
             y_bin = '0'+y_bin
-        test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result)
+        inputs = Shamir(t, n).share_bitstring_secret(x_bin[::-1]+y_bin[::-1])
+        test_mpc(t, n, c_path, n_triples, inputs, result)
 
 def test_mul64_circuit():
     t = 2
@@ -128,7 +131,8 @@ def test_mul64_circuit():
         y_bin = bin(y)[2:]
         while len(y_bin) < 64:
             y_bin = '0'+y_bin
-        test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result, reflect=True)
+        inputs = Shamir(t, n).share_bitstring_secret(x_bin[::-1]+y_bin[::-1])
+        test_mpc(t, n, c_path, n_triples, inputs, result, reflect=True)
 
 def test_lessthan32_circuit():
     t = 2
@@ -143,16 +147,23 @@ def test_lessthan32_circuit():
         y_bin = bin(y)[2:]
         while len(y_bin) < 32:
             y_bin = '0'+y_bin
-        test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result)
+        inputs = Shamir(t, n).share_bitstring_secret(x_bin[::-1]+y_bin[::-1])
+        test_mpc(t, n, c_path, n_triples, inputs, result)
 
 def test_unnormalized_example():
     t = 1
     n = 3
     c_path = "bristol_circuits/unnormalized_subregion_100_10.txt"
     n_triples = 200000
-    inputs = ''.join(['0' for _ in range(64)]+['1' for _ in range(1200)])
-    
-        test_mpc(t, n, c_path, n_triples, [x_bin[::-1], y_bin[::-1]], result)
+    ones = ['1' for _ in range(1200)]
+    inputs = Shamir(t, n).share_bitstring_secret(ones)
+    for i in range(len(inputs)):
+        inputs[i] = [0 for _ in range(64)]+inputs[i]
+    result = bin(300)[2:]
+    while len(result)<64:
+        result = '0'+result
+    result = result*10
+    test_mpc(t, n, c_path, n_triples, inputs, result)
 
 if __name__ == "__main__":
     print("--BEGIN ADD64 TEST--")
@@ -167,3 +178,5 @@ if __name__ == "__main__":
     test_mul64mod_circuit()
     print("--BEGIN MUL64 TEST--")
     test_mul64_circuit()
+    print("--BEGIN LONG TEST--")
+    test_unnormalized_example()
