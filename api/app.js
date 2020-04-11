@@ -14,8 +14,8 @@ app.use (helmet())
 app.use (cors());
 app.use (morgan('dev'));
 app.use (compression())
-app.use (bodyParser.json());
 app.use (bodyParser.urlencoded({ extended: false }))
+app.use (bodyParser.json());
 
 //set up middleware routes
 app.use('/clients', require('./routes/clients'));
