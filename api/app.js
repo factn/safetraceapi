@@ -13,8 +13,8 @@ const compression = require('compression')
 app.use (helmet())
 app.use (cors());
 app.use (morgan('dev'));
-app.use (compression())
-// app.use (bodyParser.urlencoded({ extended: false }))
+app.use (compression());
+app.use (bodyParser.urlencoded({ extended: true }));
 app.use (bodyParser.json());
 
 //set up middleware routes
