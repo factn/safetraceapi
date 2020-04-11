@@ -150,14 +150,13 @@ OUTPUT
 */
 module.exports.post_event = async (req, response, next) => {
     try { 
-        response.status(201).json( {
-            body: req.body,
-            headers: req.headers,
-            client: req.st_client
+        // response.status(201).json( {
+        //     body: req.body,
+        //     headers: req.headers,
+        //     client: req.st_client
 
-        } );
+        // } );
 
-        /*
         assertEventFormats (req);
         
         // adds single qoutes around string arguments for sql queries
@@ -174,14 +173,14 @@ module.exports.post_event = async (req, response, next) => {
         
         let sql = `INSERT INTO ${TABLE} (${columns}) VALUES (${values}) RETURNING ${EVENT_ID};`;
         
-        response.status(201).json( {
-            sql: sql
-        } );
-        */
+        // response.status(201).json( {
+        //     sql: sql
+        // } );
+        
         
         // add the event row
-        // const result = await db.query(sql);
-        // response.status(201).json( result.rows[0] );
+        const result = await db.query(sql);
+        response.status(201).json( result.rows[0] );
     }
     catch (e) { next(e); }
 }
