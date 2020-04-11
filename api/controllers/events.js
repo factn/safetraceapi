@@ -150,26 +150,34 @@ OUTPUT
 */
 module.exports.post_event = async (req, response, next) => {
     try { 
+        response.status(201).json( {
+            body: req.body,
+            headers: req.headers,
+            client: req.st_client
 
+        } );
+
+        /*
         assertEventFormats (req);
-
+        
         // adds single qoutes around string arguments for sql queries
         function stringifyArg(arg) {
             return typeof arg === 'string' ? `'${arg}'` : arg;
         }
-
+        
         let keys = Object.keys(req.body);
         
         // format the values for sql
         let values = keys.map(k => stringifyArg(req.body[k])).join(',');    
         // format the keys for sql columns
         let columns = keys.join(", ");   
-
+        
         let sql = `INSERT INTO ${TABLE} (${columns}) VALUES (${values}) RETURNING ${EVENT_ID};`;
-
+        
         response.status(201).json( {
             sql: sql
         } );
+        */
         
         // add the event row
         // const result = await db.query(sql);
