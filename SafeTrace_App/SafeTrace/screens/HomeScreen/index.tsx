@@ -9,7 +9,7 @@ import AppRedux from '../../store/AppRedux';
 import { BaseLayout, InputContainer, Input, Button } from './styles';
 
 const DEVICE_ID = Constants.installationId;
-const API_KEY = Constants.manifest.extra.API_KEY;
+// const API_KEY = Constants.manifest.extra.API_KEY;
 
 interface IProps {
   performTest: any;
@@ -29,7 +29,7 @@ const HomeScreen = (props: IProps) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          api_key: Constants.manifest.extra.API_KEY,
+          // api_key: Constants.manifest.extra.API_KEY,
           // 'device_key': 'cb94a1442fc90ee43d17a4284ea26675a432fc4c7a1d6d0905c23ce5eaa0f391'
           device_key:
             '250765803750a51bed76023b5491c71c992e8d42f28afecc15f12411c7eb9ecc',

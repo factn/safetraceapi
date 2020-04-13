@@ -22,7 +22,7 @@ import { Alert } from 'react-native';
 // }
 
 const DEVICE_ID = Constants.installationId;
-const API_KEY = Constants.manifest.extra.API_KEY;
+// const API_KEY = Constants.manifest.extra.API_KEY;
 
 const DataPrivacyScreen = () => {
   const removeDevice = () => {
@@ -31,7 +31,7 @@ const DataPrivacyScreen = () => {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          api_key: API_KEY,
+          // api_key: API_KEY,
         },
         body: JSON.stringify({
           // TODO: make device id, row type, infection status dynamic
