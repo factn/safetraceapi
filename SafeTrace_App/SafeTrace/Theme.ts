@@ -1,6 +1,7 @@
-import { Layout, Colors } from './src/constants';
+import { Layout, Colors, Fonts } from './src/constants';
 
 export const Theme: any = {
-  ...Layout,
-  ...Colors,
+  layout: { ...Layout },
+  colors: { ...Colors },
+  fonts: { ...Fonts },
 };

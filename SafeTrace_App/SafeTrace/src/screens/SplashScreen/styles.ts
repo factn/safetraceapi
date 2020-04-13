@@ -19,10 +19,11 @@ export const SafeTraceLogo = styled.Image`
 `;
 
 export const SafeTraceLogoText = styled.Text`
-  margin-top: -50px;
+  margin-top: -40px;
   margin-bottom: 70px;
-  font-size: 25px;
-  letter-spacing: 2px;
+  font-size: 30px;
+  letter-spacing: 3px;
+  font-family: ${props => props.theme.fonts.bold};
 `;
 
 export const Loader = styled(LottieView)`

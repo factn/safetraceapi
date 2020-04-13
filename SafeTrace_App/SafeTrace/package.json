@@ -84,5 +84,10 @@
     "redux-tools": "^3.2.0",
     "typescript": "^3.8.3"
   },
-  "private": true
+  "private": true,
+  "rnpm": {
+    "assets": [
+      "./assets/fonts/"
+    ]
+  }
 }
