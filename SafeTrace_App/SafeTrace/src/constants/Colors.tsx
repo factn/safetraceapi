@@ -1,6 +1,8 @@
+import { IThemeColors } from 'react-native';
+
 const tintColor = '#2f95dc';
 
-export const Colors = {
+export const Colors: IThemeColors = {
   tintColor,
   tabIconDefault: '#ccc',
   tabIconSelected: tintColor,

@@ -1,4 +1,5 @@
 import styled from 'styled-components/native';
+import { ITheme } from 'react-native';
 import LottieView from 'lottie-react-native';
 
 export const SplashScreenBackgroundCover = styled.ImageBackground`
@@ -18,7 +19,9 @@ export const SafeTraceLogo = styled.Image`
   transform: scale(0.5);
 `;
 
-export const SafeTraceLogoText = styled.Text`
+export const SafeTraceLogoText = styled.Text<{
+  theme?: ITheme;
+}>`
   margin-top: -40px;
   margin-bottom: 70px;
   font-size: 30px;
