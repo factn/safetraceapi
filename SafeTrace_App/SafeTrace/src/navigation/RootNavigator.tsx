@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import BottomTabNavigator from './BottomTabNavigator';
+import { SplashScreen } from '../screens/SplashScreen';
 
 const Stack = createStackNavigator();
 
@@ -19,7 +20,8 @@ export default (props: IProps) => {
       initialState={initialState}
     >
       <Stack.Navigator>
-        <Stack.Screen name="Root" component={BottomTabNavigator} />
+        {/* <Stack.Screen name="Root" component={BottomTabNavigator} /> */}
+        <Stack.Screen name="Splash" component={SplashScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
