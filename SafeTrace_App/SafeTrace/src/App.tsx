@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Platform, StatusBar } from "react-native";
-import { ThemeProvider } from "styled-components/native";
-import { Provider } from "react-redux";
-import { PersistGate } from "redux-persist/integration/react";
-import { NavigationContainer } from "@react-navigation/native";
+import React, { useState, useEffect, useRef } from 'react';
+import { Platform, StatusBar, SafeAreaView } from 'react-native';
+import { ThemeProvider } from 'styled-components/native';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 
-import { BaseLayout } from "../styles";
-import useLinking from "./navigation/useLinking";
-import RootNavigator from "./navigation/RootNavigator";
-import { Theme } from "../Theme";
-import { configureStore } from "./store";
+import useLinking from './navigation/useLinking';
+import RootNavigator from './navigation/RootNavigator';
+import { Theme } from '../Theme';
+import { configureStore } from './store';
+import { BaseLayout } from './components';
 
 interface IProps {
   skipLoadingScreen?: any;
@@ -21,10 +20,6 @@ export default (props: IProps) => {
   const containerRef = useRef();
   const { getInitialState } = useLinking(containerRef);
   const storeRef = configureStore();
-
-  const StatusBarNode = Platform.OS === "ios" && (
-    <StatusBar barStyle="default" />
-  );
 
   useEffect(() => {
     const loadResourcesAndDataAsync = async () => {
@@ -43,22 +38,27 @@ export default (props: IProps) => {
   }, []);
 
   if (!isLoadingComplete && !props.skipLoadingScreen) {
-    return <BaseLayout />;
+    return (
+      <SafeAreaView>
+        <BaseLayout />
+      </SafeAreaView>
+    );
   } else {
     return (
-      <BaseLayout>
-        {StatusBarNode}
-        <ThemeProvider theme={Theme}>
-          <Provider store={storeRef.store}>
-            <PersistGate loading={null} persistor={storeRef.persistor}>
-              <RootNavigator
-                containerRef={containerRef}
-                initialState={initialNavigationState}
-              />
-            </PersistGate>
-          </Provider>
-        </ThemeProvider>
-      </BaseLayout>
+      <SafeAreaView style={{ flex: 1 }}>
+        <BaseLayout>
+          <ThemeProvider theme={Theme}>
+            <Provider store={storeRef.store}>
+              <PersistGate loading={null} persistor={storeRef.persistor}>
+                <RootNavigator
+                  containerRef={containerRef}
+                  initialState={initialNavigationState}
+                />
+              </PersistGate>
+            </Provider>
+          </ThemeProvider>
+        </BaseLayout>
+      </SafeAreaView>
     );
   }
 };

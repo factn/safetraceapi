@@ -19,9 +19,12 @@ export default (props: IProps) => {
       ref={containerRef}
       initialState={initialState}
     >
-      <Stack.Navigator>
+      <Stack.Navigator headerMode="none">
         {/* <Stack.Screen name="Root" component={BottomTabNavigator} /> */}
-        <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen
+          name="Splash"
+          component={SplashScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
