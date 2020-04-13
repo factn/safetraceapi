@@ -49,24 +49,6 @@ public class MainApplication extends Application implements ReactApplication {
     protected String getJSMainModuleName() {
       return "index";
     }
-
-//    @Override
-//    protected @Nullable String getJSBundleFile() {
-//      if (BuildConfig.DEBUG) {
-//        return super.getJSBundleFile();
-//      } else {
-//        return UpdatesController.getInstance().getLaunchAssetFile();
-//      }
-//    }
-
-//    @Override
-//    protected @Nullable String getBundleAssetName() {
-//      if (BuildConfig.DEBUG) {
-//        return super.getBundleAssetName();
-//      } else {
-//        return UpdatesController.getInstance().getBundleAssetName();
-//      }
-//    }
   };
 
   @Override
