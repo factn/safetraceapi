@@ -1,7 +1,8 @@
 import { compose, applyMiddleware, createStore, combineReducers } from 'redux';
 import thunk from 'redux-thunk';
 import { persistStore, persistReducer } from 'redux-persist';
-import { AsyncStorage } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
+
 
 const rootReducer = combineReducers({
   app: require('./AppRedux').reducer,
