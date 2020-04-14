@@ -3,7 +3,7 @@ import React from 'react';
 import renderer from 'react-test-renderer';
 import { shallow } from 'enzyme';
 
-import App from '../App';
+import App from '../src/App';
 
 jest.mock('expo', () => ({
   AppLoading: 'AppLoading',
