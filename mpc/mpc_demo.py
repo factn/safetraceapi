@@ -33,4 +33,4 @@ if __name__ == '__main__':
 	idx2node = {i: ('54.237.244.61', 7999+i) for i in range(1,4)}
 	pid = ''.join([random.choice([i for i in 'abcdef123456789']) for _ in range(10)])
 	c = Client(1, 3, idx2node)
-	print(c.send_operation(x, y, pid))
+	print(c.do_intersection_operation(x, y, pid))

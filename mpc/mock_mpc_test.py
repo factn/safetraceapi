@@ -1,9 +1,9 @@
-from circuit import Circuit
+from circuit import Circuit, RuntimeCircuit
 from shamir import Shamir
 from triples import gen_triples
-from dispatcher import Dispatcher
+from mock_messaging import MockMessenger
 from multiprocessing import Queue, Process
-import time, asyncio
+import time
 
 def consumer(mq, n, result, t, processes, reflect):
     vals = []
@@ -15,17 +15,14 @@ def consumer(mq, n, result, t, processes, reflect):
         reconstructed = reconstructed[int(len(reconstructed)/2):]+reconstructed[:int(len(reconstructed)/2)]
     assert eval('0b'+reconstructed) == eval('0b'+result), "result incorrect"
 
-async def eval_circuit(t, n, c, index, queues, main_queue, inputs, triples):
+def run_circuit_process(t, n, c, index, queues, main_queue, inputs, triples):
     shamir = Shamir(t, n)
-    dispatcher = Dispatcher(t, n, index, queues, "--UNIQUE COMPUTATION ID--")
-    outputs = await c.evaluate(inputs, shamir=shamir, dispatcher=dispatcher, triples=triples)
+    messenger = MockMessenger(t, n, index, queues, "--UNIQUE COMPUTATION ID--")
+    runtime = RuntimeCircuit(c, inputs, triples=triples, shamir=shamir)
+    outputs = runtime.evaluate(messenger)
     main_queue.put(outputs)
 
-def run_circuit_process(t, n, c, index, queues, main_queue, inputs, triples):
-    asyncio.run(eval_circuit(t, n, c, index, queues, main_queue, inputs, triples))
-
-def test_mpc(t, n, c_path, n_triples, all_inputs, result, reflect=False):
-    triples = gen_triples(t, n, n_triples)
+def test_mpc(t, n, c_path, triples, all_inputs, result, reflect=False):
     mq = Queue()
     queues = [Queue() for _ in range(n)]
     processes = []
@@ -56,11 +53,8 @@ def test_mpc(t, n, c_path, n_triples, all_inputs, result, reflect=False):
         q.join_thread()
     mq.join_thread()
 
-def test_add64_circuit():
-    t = 2
-    n = 5
+def test_add64_circuit(t, n, triples):
     c_path = "bristol_circuits/add64.txt"
-    n_triples = 500
     for x,y in [(100, 200), (2**30, 2**10), (2**64-1, 2**64-1)]:
         result = bin((x+y)%(2**64))[2:]
         x_bin = bin(x)[2:]
@@ -70,13 +64,10 @@ def test_add64_circuit():
         while len(y_bin) < 64:
             y_bin = '0'+y_bin
         inputs = Shamir(t, n).share_bitstring_secret(x_bin[::-1]+y_bin[::-1])
-        test_mpc(t, n, c_path, n_triples, inputs, result)
+        test_mpc(t, n, c_path, triples, inputs, result)
 
-def test_sub64_circuit():
-    t = 2
-    n = 5
+def test_sub64_circuit(t, n, triples):
     c_path = "bristol_circuits/sub64.txt"
-    n_triples = 500
     for x,y in [(1000, 2010), (2025, 111), (2**64-2, 2**64-2)]:
         result = (x-y)%(2**64)
         result = bin(result)[2:]
@@ -87,26 +78,20 @@ def test_sub64_circuit():
         while len(y_bin) < 64:
             y_bin = '0'+y_bin
         inputs = Shamir(t, n).share_bitstring_secret(x_bin[::-1]+y_bin[::-1])
-        test_mpc(t, n, c_path, n_triples, inputs, result)
+        test_mpc(t, n, c_path, triples, inputs, result)
 
-def test_mul2_circuit():
-    t = 2
-    n = 5
+def test_mul2_circuit(t, n, triples):
     c_path = "bristol_circuits/mul2.txt"
-    n_triples = 2
     for x,y in [(0,1), (0,0), (1,1)]:
         result = (x*y)
         result = bin(result)[2:]
         x_bin = bin(x)[2:]
         y_bin = bin(y)[2:]
         inputs = Shamir(t, n).share_bitstring_secret(x_bin+y_bin)
-        test_mpc(t, n, c_path, n_triples, inputs, result)
+        test_mpc(t, n, c_path, triples, inputs, result)
 
-def test_mul64mod_circuit():
-    t = 2
-    n = 5
+def test_mul64mod_circuit(t, n, triples):
     c_path = "bristol_circuits/mul64mod.txt"
-    n_triples = 10000
     for x,y in [(111, 2025), (2**64-1, 2**64-1)]:
         result = bin((x*y)%(2**64))[2:]
         x_bin = bin(x)[2:]
@@ -116,13 +101,10 @@ def test_mul64mod_circuit():
         while len(y_bin) < 64:
             y_bin = '0'+y_bin
         inputs = Shamir(t, n).share_bitstring_secret(x_bin[::-1]+y_bin[::-1])
-        test_mpc(t, n, c_path, n_triples, inputs, result)
+        test_mpc(t, n, c_path, triples, inputs, result)
 
-def test_mul64_circuit():
-    t = 2
-    n = 5
+def test_mul64_circuit(t, n, triples):
     c_path = "bristol_circuits/mul64.txt"
-    n_triples = 10000
     for x,y in [(111, 2025), (2**64-1, 2**64-1)]:
         result = bin((x*y))[2:]
         x_bin = bin(x)[2:]
@@ -132,13 +114,10 @@ def test_mul64_circuit():
         while len(y_bin) < 64:
             y_bin = '0'+y_bin
         inputs = Shamir(t, n).share_bitstring_secret(x_bin[::-1]+y_bin[::-1])
-        test_mpc(t, n, c_path, n_triples, inputs, result, reflect=True)
+        test_mpc(t, n, c_path, triples, inputs, result, reflect=True)
 
-def test_lessthan32_circuit():
-    t = 2
-    n = 5
+def test_lessthan32_circuit(t, n, triples):
     c_path = "bristol_circuits/lessthan32.txt"
-    n_triples = 10000
     for x,y in [(111, 2025), (2025, 111), (2**32-1, 2**32-1)]:
         result = bin(x<y)[2:]
         x_bin = bin(x)[2:]
@@ -148,35 +127,42 @@ def test_lessthan32_circuit():
         while len(y_bin) < 32:
             y_bin = '0'+y_bin
         inputs = Shamir(t, n).share_bitstring_secret(x_bin[::-1]+y_bin[::-1])
-        test_mpc(t, n, c_path, n_triples, inputs, result)
+        test_mpc(t, n, c_path, triples, inputs, result)
 
-def test_unnormalized_example():
-    t = 1
-    n = 3
-    c_path = "bristol_circuits/unnormalized_subregion_100_10.txt"
-    n_triples = 200000
-    ones = ['1' for _ in range(1200)]
+def test_unnormalized_subregion_10k(t, n, triples):
+    c_path = "bristol_circuits/unnormalized_subregion_100000_1.txt"
+    ones = ['1' for _ in range(300000)]
     inputs = Shamir(t, n).share_bitstring_secret(ones)
     for i in range(len(inputs)):
         inputs[i] = [0 for _ in range(64)]+inputs[i]
-    result = bin(300)[2:]
+    result = bin(300000)[2:]
     while len(result)<64:
         result = '0'+result
-    result = result*10
-    test_mpc(t, n, c_path, n_triples, inputs, result)
+    result = result
+    test_mpc(t, n, c_path, triples, inputs, result)
 
 if __name__ == "__main__":
-    print("--BEGIN ADD64 TEST--")
-    test_add64_circuit()
-    print("--BEGIN SUB64 TEST--")
-    test_sub64_circuit()
-    print("--BEGIN LT32 TEST--")
-    test_lessthan32_circuit()
+    t=1
+    n=3
+    triples = gen_triples(t, n, 10000)
     print("--BEGIN MUL2 TEST--")
-    test_mul2_circuit()
+    n_triples = 1
+    test_mul2_circuit(t, n, [tr[:n_triples] for tr in triples])
+    print("--BEGIN ADD64 TEST--")
+    n_triples=500
+    test_add64_circuit(t, n, [tr[:n_triples] for tr in triples])
+    print("--BEGIN SUB64 TEST--")
+    test_sub64_circuit(t, n, [tr[:n_triples] for tr in triples])
+    print("--BEGIN LT32 TEST--")
+    n_triples = 10000
+    test_lessthan32_circuit(t, n, [tr[:n_triples] for tr in triples])
     print("--BEGIN MUL64MOD TEST--")
-    test_mul64mod_circuit()
+    test_mul64mod_circuit(t, n, [tr[:n_triples] for tr in triples])
     print("--BEGIN MUL64 TEST--")
-    test_mul64_circuit()
+    test_mul64_circuit(t, n, [tr[:n_triples] for tr in triples])
     print("--BEGIN LONG TEST--")
-    test_unnormalized_example()
+    print("initializing triples...")
+    start = time.time()
+    triples = gen_triples(1, 3, 5000000)
+    print(f"time: {round(time.time()-start, 4)}")
+    test_unnormalized_subregion_10k(t, n, triples)

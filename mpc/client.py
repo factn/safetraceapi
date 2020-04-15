@@ -11,10 +11,10 @@ class Client:
 		self.n = n
 		self.idx2node = idx2node
 
-	def send_operation(self, x, y, uuid):
-		return asyncio.run(self.operation(x, y, uuid))
+	def do_intersection_operation(self, x, y, uuid):
+		return asyncio.run(self.intersection_operation(x, y, uuid))
 
-	async def operation(self, x, y, uuid):
+	async def intersection_operation(self, x, y, uuid):
 		bx = bin(x)[2:]
 		while len(bx) < 31:
 			bx = '0' + bx
@@ -25,7 +25,7 @@ class Client:
 		y_shares = Shamir(self.t, self.n).share_bitstring_secret(by[::-1])
 		tasks = []
 		for k, v in self.idx2node.items():
-			msg = {'uuid': uuid, 'x_inputs': serialize_shares(x_shares[k-1]), 'y_inputs': serialize_shares(y_shares[k-1])}
+			msg = {'msgtype': 'get-intersection', 'uuid': uuid, 'x_inputs': serialize_shares(x_shares[k-1]), 'y_inputs': serialize_shares(y_shares[k-1])}
 			host, port = v
 			tasks.append(talk_to_single_server(msg, host, port))
 		vals = []
@@ -35,6 +35,8 @@ class Client:
 				vals.append(deserialize_shares(msg['result']))
 			if len(vals) > self.t:
 				break
+		if len(vals) < self.t+1:
+			raise ValueError(f'Failed to receive enough server responses (got: {len(vals)}, need: {self.t+1})')
 		return Shamir(self.t, self.n).reconstruct_bitstring_secret(vals)
 
 async def talk_to_single_server(msg, host, port):
