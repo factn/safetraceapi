@@ -48,6 +48,7 @@ class RuntimeCircuit:
 
 	def evaluate(self, mock_messenger=None):
 		for i in range(len(self.circuit_layers)):
+			print(f"BEGIN LAYER {i+1}")
 			idxs, x, y, msg, cs = self.compute_layer(i)
 			if len(idxs) > 0:
 				mock_messenger.broadcast("MUL", i, msg)

@@ -15,7 +15,7 @@ class Server:
 		self.circuit_dir = circuit_dir
 		if self.circuit_dir == None:
 			self.circuit_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bristol_circuits')
-		self.circuit = Circuit(os.path.join(self.circuit_dir, 'dist32.txt'), ['V' for _ in range(32)]+['S' if i != 31 else 'V' for i in range(32)]+['S' if i != 31 else 'V' for i in range(32)]+['V' for i in range(96)])
+		self.intersection_circuit = Circuit(os.path.join(self.circuit_dir, 'dist32.txt'), ['V' for _ in range(32)]+['S' if i != 31 else 'V' for i in range(32)]+['S' if i != 31 else 'V' for i in range(32)]+['V' for i in range(96)])
 		self.bootstrap = bootstrap
 		self.loop = asyncio.get_event_loop()
 		self.active_ops = {}
@@ -54,11 +54,11 @@ class Server:
 			writer.close()
 
 	async def handle_intersection_client(self, reader, writer, msg):
-		print(f'Executing operation {msg["uuid"]}')
-		with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f'test_triples/{self.index}'), 'r') as f:
+		with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f'test_triples/{self.index}-10k'), 'r') as f:
 			data = f.read()
 		data = json.loads(data)
 		triples = deserialize_triples(data['data'])
+		print(f'Executing intersection operation {msg["uuid"]}')
 		resp = await self.execute_intersection_operation(msg, 40.63500, -73.96000, 0.08, triples)
 		r = json.dumps(resp)
 		writer.write(str.encode(r+'\n'))
@@ -74,9 +74,9 @@ class Server:
 					r = json.dumps({'msgtype': 'mpc-handshake', 'index': self.index})
 					writer.write(str.encode(r+'\n'))
 					await writer.drain()
-					self.mpc_peers[recv_index] = (reader, writer)
-					print(f"added mpc peer -- ({len(self.mpc_peers)} total mpc peers)")
-					t = self.loop.create_task(self.mpc_listener(recv_index))
+					self.mpc_peers[index] = (reader, writer)
+					print(f"added mpc peer index {index} -- ({len(self.mpc_peers)} total mpc peers)")
+					t = self.loop.create_task(self.mpc_listener(index))
 					self.mpc_listeners.append(t)
 					return
 		raise ValueError('failed mpc handshake')
@@ -93,7 +93,7 @@ class Server:
 			if msg['msgtype'] != 'mpc-handshake' or msg['index'] != index:
 				raise ValueError('failed mpc handshake')
 			self.mpc_peers[index] = (reader, writer)
-			print(f"added mpc peer -- ({len(self.mpc_peers)} total mpc peers)")
+			print(f"added mpc peer index {index} -- ({len(self.mpc_peers)} total mpc peers)")
 			t = self.loop.create_task(self.mpc_listener(index))
 			self.mpc_listeners.append(t)
 		except:
@@ -103,11 +103,10 @@ class Server:
 				pass
 
 	async def mpc_listener(self, index):
-		print(f'listening to mpc peer index {index}')
 		while True:
 			try:
 				reader, writer = self.mpc_peers[index]
-				await writer.drain()
+				#await writer.drain()
 				data = await asyncio.wait_for(reader.readline(), timeout=60)
 				data = data.strip()
 				msg = json.loads(data.decode())
@@ -118,10 +117,10 @@ class Server:
 				try:
 					writer.close()
 					del self.mpc_peers[index]
+					print(f"deleted mpc peer index {index} -- ({len(self.mpc_peers)} total mpc peers)")
 				except:
 					pass
 				break
-		print(f'closing listener for mpc peer index {index}')
 
 	async def send_mpc_msg(self, index, msg):
 		try:
@@ -160,13 +159,11 @@ class Server:
 		inputs = [0 for _ in range(32)]+x_inputs+y_inputs+all_constant_bits
 		opid = msg['uuid']
 		self.active_ops[opid] = asyncio.Queue()
-		runtime = RuntimeCircuit(self.circuit, inputs, triples=triples, shamir=Shamir(self.t, self.n))
+		runtime = RuntimeCircuit(self.intersection_circuit, inputs, triples=triples, shamir=Shamir(self.t, self.n))
 		for i in range(len(runtime.circuit_layers)):
-			#print(f'Circuit {opid} Index {self.index} layer {i+1}: BEGIN')
 			idxs, x, y, send_shares, cs = runtime.compute_layer(i)
 			bmsg = serialize_mul_msg(send_shares)
 			m = {'uuid': opid, 'round': i, 'data': bmsg}
-			#print(f'Circuit {opid} Index {self.index} layer {i+1}: SEND')
 			tasks = []
 			for k in range(1, self.n+1):
 				if k != self.index:
@@ -176,10 +173,9 @@ class Server:
 				for res in asyncio.as_completed(tasks):
 					idx, ok = await res
 					if not ok:
-						#print(f'Circuit {opid} Index {self.index} layer {i+1}: FAILED TO SEND TO {idx}')
+						print(f'Circuit {opid} Index {self.index} layer {i+1}: FAILED TO SEND TO {idx}')
 						new_tasks.append(self.send_mpc_msg(idx, m))
 				tasks = new_tasks
-			#print(f'Circuit {opid} Index {self.index} layer {i+1}: RECV')
 			resps = []
 			while len(resps) < self.t+1:
 				r = await self.active_ops[opid].get()
@@ -189,7 +185,6 @@ class Server:
 					self.active_ops[opid].put_nowait(r)
 			resps.append(send_shares)
 			runtime.finish_layer(idxs, x, y, resps, cs)
-			#print(f'Circuit {opid} Index {self.index} layer {i+1}: FINISHED')
 		out = runtime.get_outputs()
 		del self.active_ops[opid]
 		return {'uuid': opid, 'result': serialize_shares(out)}

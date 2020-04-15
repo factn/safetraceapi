@@ -7,7 +7,7 @@ import time
 
 def consumer(mq, n, result, t, processes, reflect):
     vals = []
-    while len(vals) < n:
+    while len(vals) < t+1:
         if not mq.empty():
             vals.append(mq.get())
     reconstructed = Shamir(t, n).reconstruct_bitstring_secret(vals)[::-1]
@@ -41,9 +41,9 @@ def test_mpc(t, n, c_path, triples, all_inputs, result, reflect=False):
         p.start()
     t1 = Process(target=consumer, args=(mq, n, result, t, processes, reflect))
     t1.start()
-    for p in processes:
-        p.join()
     t1.join()
+    for p in processes:
+        p.terminate()
     print(f"time: {round(time.time()-start, 4)} seconds")
     while not mq.empty():
         mq.get()
@@ -130,12 +130,12 @@ def test_lessthan32_circuit(t, n, triples):
         test_mpc(t, n, c_path, triples, inputs, result)
 
 def test_unnormalized_subregion_10k(t, n, triples):
-    c_path = "bristol_circuits/unnormalized_subregion_100000_1.txt"
-    ones = ['1' for _ in range(300000)]
+    c_path = "bristol_circuits/unnormalized_subregion_10000_1.txt"
+    ones = ['1' for _ in range(30000)]
     inputs = Shamir(t, n).share_bitstring_secret(ones)
     for i in range(len(inputs)):
         inputs[i] = [0 for _ in range(64)]+inputs[i]
-    result = bin(300000)[2:]
+    result = bin(30000)[2:]
     while len(result)<64:
         result = '0'+result
     result = result
@@ -163,6 +163,6 @@ if __name__ == "__main__":
     print("--BEGIN LONG TEST--")
     print("initializing triples...")
     start = time.time()
-    triples = gen_triples(1, 3, 5000000)
+    triples = gen_triples(1, 3, 1000000)
     print(f"time: {round(time.time()-start, 4)}")
     test_unnormalized_subregion_10k(t, n, triples)
