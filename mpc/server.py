@@ -1,13 +1,12 @@
-import p2p
 from serialize import *
 from triples import TripleGeneration
 from shamir import Shamir
 from circuit import Circuit, RuntimeCircuit
-import asyncio, json, os
+import asyncio, json, os, ssl
 
 class Server:
 
-	def __init__(self, port, t, n, index, bootstrap=[], circuit_dir=None):
+	def __init__(self, port, t, n, index, bootstrap=[], circuit_dir=None, certfile=None, keyfile=None, cafile=None):
 		self.port = port
 		self.t = t
 		self.n = n
@@ -15,6 +14,15 @@ class Server:
 		self.circuit_dir = circuit_dir
 		if self.circuit_dir == None:
 			self.circuit_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bristol_circuits')
+		self.certfile = certfile
+		if self.certfile == None:
+			self.certfile = os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'certs'), f'node-{self.index}-test.crt')
+		self.keyfile = keyfile
+		if self.keyfile == None:
+			self.keyfile = os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'certs'), f'node-{self.index}-test.key')
+		self.cafile = cafile
+		if self.cafile == None:
+			self.cafile = os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'certs'), 'testCA.pem')
 		self.intersection_circuit = Circuit(os.path.join(self.circuit_dir, 'dist32.txt'), ['V' for _ in range(32)]+['S' if i != 31 else 'V' for i in range(32)]+['S' if i != 31 else 'V' for i in range(32)]+['V' for i in range(96)])
 		self.bootstrap = bootstrap
 		self.loop = asyncio.get_event_loop()
@@ -23,7 +31,17 @@ class Server:
 		self.mpc_listeners = []
 
 	def start(self):
-		coro = asyncio.start_server(self.handle_connection, '0.0.0.0', self.port, loop=self.loop)
+		ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+		ssl_ctx.options |= ssl.OP_NO_TLSv1
+		ssl_ctx.options |= ssl.OP_NO_TLSv1_1
+		ssl_ctx.options |= ssl.OP_SINGLE_DH_USE
+		ssl_ctx.options |= ssl.OP_SINGLE_ECDH_USE
+		ssl_ctx.load_cert_chain(self.certfile, self.keyfile)
+		ssl_ctx.load_verify_locations(cafile=self.cafile)
+		ssl_ctx.check_hostname = False
+		ssl_ctx.verify_mode = ssl.VerifyMode.CERT_REQUIRED
+		ssl_ctx.set_ciphers('ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384')
+		coro = asyncio.start_server(self.handle_connection, '0.0.0.0', self.port, ssl=ssl_ctx, loop=self.loop)
 		server = self.loop.run_until_complete(coro)
 		for host, port, index in self.bootstrap:
 			self.loop.create_task(self.mpc_handshake(host, port, index))
@@ -83,7 +101,15 @@ class Server:
 
 	async def mpc_handshake(self, host, port, index):
 		try:
-			reader, writer = await asyncio.open_connection(host, port)
+			ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+			ssl_ctx.options |= ssl.OP_NO_TLSv1
+			ssl_ctx.options |= ssl.OP_NO_TLSv1_1
+			ssl_ctx.load_cert_chain(self.certfile, keyfile=self.keyfile)
+			ssl_ctx.load_verify_locations(cafile=self.cafile)
+			ssl_ctx.check_hostname = False
+			ssl_ctx.verify_mode = ssl.VerifyMode.CERT_REQUIRED
+			ssl_ctx.set_ciphers('ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384')
+			reader, writer = await asyncio.open_connection(host, port, ssl=ssl_ctx)
 			r = json.dumps({'msgtype': 'mpc-handshake', 'index': self.index, 'port': self.port})
 			writer.write(str.encode(r+'\n'))
 			await writer.drain()
@@ -107,7 +133,7 @@ class Server:
 			try:
 				reader, writer = self.mpc_peers[index]
 				#await writer.drain()
-				data = await asyncio.wait_for(reader.readline(), timeout=60)
+				data = await reader.readline()
 				data = data.strip()
 				msg = json.loads(data.decode())
 				for k, v in self.active_ops.items():
@@ -129,7 +155,8 @@ class Server:
 			writer.write(str.encode(m+'\n'))
 			await writer.drain()
 			return index, True
-		except:
+		except Exception as e:
+			print(e)
 			try:
 				writer.close()
 				await writer.wait_closed()
@@ -173,7 +200,7 @@ class Server:
 				for res in asyncio.as_completed(tasks):
 					idx, ok = await res
 					if not ok:
-						print(f'Circuit {opid} Index {self.index} layer {i+1}: FAILED TO SEND TO {idx}')
+						#print(f'Circuit {opid} Index {self.index} layer {i+1}: FAILED TO SEND TO {idx}')
 						new_tasks.append(self.send_mpc_msg(idx, m))
 				tasks = new_tasks
 			resps = []
