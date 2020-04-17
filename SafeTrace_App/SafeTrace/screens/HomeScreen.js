@@ -70,7 +70,7 @@ export const getObjectForKey = async (key) => {
 
   //store and get the user's private key
 
-  function encryptSymptomEntry () {
+  /*function encryptSymptomEntry () {
     //console.log(enteredSymptoms);
     fetch('https://safetraceapi.herokuapp.com/api/encryption', {
       method: 'POST',
@@ -92,8 +92,8 @@ export const getObjectForKey = async (key) => {
     }).then((response) => response.json())
     .then((json) => {
       console.log('Submitted Symptoms for encryption'); //TODO: remove
-      console.log(json);
-      console.log(json.encrypted_body);
+      //console.log(json);
+      //console.log(json.encrypted_body);
       submitSymptomEntry(json.encrypted_body);
       //return json.encrypted_body;
     })
@@ -106,7 +106,7 @@ export const getObjectForKey = async (key) => {
   function submitSymptomEntry (symptom_json){
     //const symptom_json = encryptSymptomEntry();
     
-    console.log(symptom_json);
+    //console.log(symptom_json);
     fetch('https://safetraceapi.herokuapp.com/api/events', {
       method: 'POST',
       headers : {
@@ -115,10 +115,11 @@ export const getObjectForKey = async (key) => {
       },
       //body: symptom_json,
       body:{
-        device_id: symptom_json.device_id,
-        infection_status: symptom_json.infection_status,
-        row_type: symptom_json.row_type,
-        symptoms: symptom_json.symptoms,
+        //'device_id': '123',
+        'device_id': symptom_json.device_id,
+        'infection_status': symptom_json.infection_status,
+        'row_type': symptom_json.row_type,
+        'symptoms': symptom_json.symptoms,
       }
     }).then((response) => response.json())
     .then((json) => {
@@ -131,9 +132,10 @@ export const getObjectForKey = async (key) => {
       console.error(error);
       return error;
     });
-  }
+  }*/
 
   function handleSignupPress () {
+    console.log(deviceID);
     fetch('https://safetraceapi.herokuapp.com/api/devices', {
       method: 'POST',
       headers : {
@@ -182,15 +184,88 @@ export const getObjectForKey = async (key) => {
     });
   }
 
+  function encryptGPS(){
+    fetch('https://safetraceapi.herokuapp.com/api/encryption', {
+      method: 'POST',
+      headers : {
+        'Content-Type': 'application/json',
+        'api_key': Constants.manifest.extra.API_KEY,
+        //'device_key': 'cb94a1442fc90ee43d17a4284ea26675a432fc4c7a1d6d0905c23ce5eaa0f391'
+        'device_key': '250765803750a51bed76023b5491c71c992e8d42f28afecc15f12411c7eb9ecc',
+        //'device_key': private_key TODO: fix this, add from memory
+      },
+      body: JSON.stringify({
+        //TODO: make device id, row type, infection status dynamic
+        "device_id": deviceID,       
+        "row_type": 0,      
+        "latitude": 45,
+        "longitude": 155,
+      }),
+    }).then((response) => response.json())
+    .then((json) => {
+      console.log('Submitted gps test'); //TODO: remove
+      console.log(json)
+      //console.log(json);
+      //console.log(json.encrypted_body);
+      submitGPS(json.encrypted_body);
+      //return json.encrypted_body;
+    })
+    .catch((error) => {
+      console.error(error);
+      return error;
+    });
+  }
+
+  function submitGPS(gps_json){
+    fetch('https://safetraceapi.herokuapp.com/api/events', {
+      method: 'POST',
+      headers : {
+        'Content-Type': 'application/json',
+        'api_key': Constants.manifest.extra.API_KEY,
+        //'device_key': 'cb94a1442fc90ee43d17a4284ea26675a432fc4c7a1d6d0905c23ce5eaa0f391'
+        'device_key': '250765803750a51bed76023b5491c71c992e8d42f28afecc15f12411c7eb9ecc',
+        //'device_key': private_key TODO: fix this, add from memory
+      },
+      body: JSON.stringify(gps_json),
+      /*body: JSON.stringify({
+        'device_id': gps_json.device_id,
+        'latitude': gps_json.latitude,
+        'longitude': gps_json.longitude,
+        'row_type': gps_json.row_type
+      }),*/
+      /*body: JSON.stringify({
+        //TODO: make device id, row type, infection status dynamic
+        "device_id": deviceID,       
+        "row_type": 0,      
+        "latitude": 45,
+        "longitude": 155,
+      }),*/
+    }).then((response) => response.json())
+    .then((json) => {
+      console.log('submitted encrypted GPS data'); //TODO: remove
+      console.log(json)
+      //console.log(json);
+      //console.log(json.encrypted_body);
+      //submitSymptomEntry(json.encrypted_body);
+      //return json.encrypted_body;
+    })
+    .catch((error) => {
+      console.error(error);
+      return error;
+    });
+  }
+
 
   return (
     <View style={styles.container}>
       <View style={styles.inputContainer}>
-        <TextInput placeholder="Enter Symptoms" style={styles.input} onChangeText={symptomsInputHandler} value={enteredSymptoms}/>
-        <Button title="Submit Symptoms" onPress = {encryptSymptomEntry}/>
+        
       </View>
       <View>
         <Button title="Sign Up" onPress = {handleSignupPress}/>
+      </View>
+      <View>
+        <Button title="GPS Test" onPress = {encryptGPS}/>
       </View>
     </View>
   );
