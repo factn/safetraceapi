@@ -28,8 +28,8 @@ if __name__ == '__main__':
 		raise ValueError('invalid latitude (must be between +/- 90 in decimal degree notation')
 	if y > 180 or y < -1*180:
 		raise ValueError('invalid longitude (must be within +/- 180 in decimal degree notation)')
-	x = round((x + 90)*100000)
-	y = round((y + 180)*100000)
+	x = round((x + 90)*100000) # shift to 0-180
+	y = round((y + 180)*100000) # shift to 0-360
 	idx2node = {i: ('54.237.244.61', 7999+i) for i in range(1,4)}
 	pid = ''.join([random.choice([i for i in 'abcdef123456789']) for _ in range(10)])
 	c = Client(1, 3, idx2node)
