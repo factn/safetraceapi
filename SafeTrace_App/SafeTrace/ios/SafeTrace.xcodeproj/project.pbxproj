@@ -19,6 +19,8 @@
 		9BA76DEF75EF49E3BD2B0BE6 /* Nunito-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 511800EFCB5C4D99A99CF9B4 /* Nunito-Italic.ttf */; };
 		E16D5F44FC954BC88D279D36 /* Nunito-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 03AFBE53B8654DD1836ADEDE /* Nunito-SemiBold.ttf */; };
 		E6246D9F2444A55C0057E475 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6246D9E2444A55C0057E475 /* File.swift */; };
+		E66D4359244B67CC00878BDD /* MPCModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = E66D4358244B67CC00878BDD /* MPCModule.swift */; };
+		E66D435B244B686700878BDD /* MPCModule.m in Sources */ = {isa = PBXBuildFile; fileRef = E66D435A244B686700878BDD /* MPCModule.m */; };
 		F665F241116C4B3AAC8BB55C /* Nunito-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 05197D6BE2CC440BB342835F /* Nunito-Bold.ttf */; };
 /* End PBXBuildFile section */
 
@@ -58,6 +60,9 @@
 		DB52AE3AB06B483EB5B4159D /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		E6246D9D2444A55B0057E475 /* SafeTrace-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SafeTrace-Bridging-Header.h"; sourceTree = "<group>"; };
 		E6246D9E2444A55C0057E475 /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
+		E66D4358244B67CC00878BDD /* MPCModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPCModule.swift; sourceTree = "<group>"; };
+		E66D435A244B686700878BDD /* MPCModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MPCModule.m; sourceTree = "<group>"; };
+		E66D435C244B6B1500878BDD /* MPCModule-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MPCModule-Bridging-Header.h"; sourceTree = "<group>"; };
 		E85CFBBB665E4BBFB9E0955F /* Fontisto.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Fontisto.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Fontisto.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
@@ -107,6 +112,7 @@
 		13B07FAE1A68108700A75B9A /* SafeTrace */ = {
 			isa = PBXGroup;
 			children = (
+				E66D4354244B5BB500878BDD /* MPC */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
@@ -116,6 +122,7 @@
 				13B07FB71A68108700A75B9A /* main.m */,
 				07C2E6E4243282B30028AF0A /* app.bundle */,
 				07C2E6E3243282B30028AF0A /* app.manifest */,
+				E66D435C244B6B1500878BDD /* MPCModule-Bridging-Header.h */,
 			);
 			name = SafeTrace;
 			sourceTree = "<group>";
@@ -170,6 +177,15 @@
 				13B07F961A680F5B00A75B9A /* app.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E66D4354244B5BB500878BDD /* MPC */ = {
+			isa = PBXGroup;
+			children = (
+				E66D4358244B67CC00878BDD /* MPCModule.swift */,
+				E66D435A244B686700878BDD /* MPCModule.m */,
+			);
+			name = MPC;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -344,8 +360,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E66D4359244B67CC00878BDD /* MPCModule.swift in Sources */,
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				E6246D9F2444A55C0057E475 /* File.swift in Sources */,
+				E66D435B244B686700878BDD /* MPCModule.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

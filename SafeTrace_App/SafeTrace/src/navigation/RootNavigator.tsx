@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import BottomTabNavigator from './BottomTabNavigator';
 import { SplashScreen } from '../screens/SplashScreen';
+import { TestScreen } from '../screens/TestScreen';
 
 const Stack = createStackNavigator();
 
@@ -19,11 +20,15 @@ export default (props: IProps) => {
       ref={containerRef}
       initialState={initialState}
     >
-      <Stack.Navigator headerMode="none">
+      <Stack.Navigator headerMode="none" initialRouteName="Test">
         {/* <Stack.Screen name="Root" component={BottomTabNavigator} /> */}
         <Stack.Screen
           name="Splash"
           component={SplashScreen}
+        />
+        <Stack.Screen
+          name="Test"
+          component={TestScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

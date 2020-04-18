@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Platform, StatusBar, SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native';
 import { ThemeProvider } from 'styled-components/native';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
