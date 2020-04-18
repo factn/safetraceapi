@@ -18,13 +18,12 @@ app.use (bodyParser.urlencoded({ extended: true }));
 app.use (bodyParser.json());
 
 //set up middleware routes
-app.use('/clients', require('./routes/clients'));
+// app.use('/api/areas', require('./routes/areas'));
+app.use('/api/nodes', require('./routes/nodes'));
+app.use('/api/results', require('./routes/results'));
+app.use('/api/shares', require('./routes/shares'));
+app.use('/api/triples', require('./routes/triples'));
 
-app.use('/api/events', require('./routes/events'));
-app.use('/api/devices', require('./routes/devices'));
-app.use('/api/permissions', require('./routes/permissions'));
-
-app.use('/api/encryption', require('./routes/encryption'));
 
 // handle errors (if we reached this line, we havent reached a suitable route)
 app.use ( (request, response, next) => {
