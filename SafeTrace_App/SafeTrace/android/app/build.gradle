@@ -146,10 +146,10 @@ android {
     }
     signingConfigs {
         debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+//            storeFile file('debug.keystore')
+//            storePassword 'android'
+//            keyAlias 'androiddebugkey'
+//            keyPassword 'android'
         }
     }
     buildTypes {
@@ -184,6 +184,8 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
     addUnimodulesDependencies()
+  
+    implementation "com.google.code.gson:gson:2.8.4"
 
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
