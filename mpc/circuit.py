@@ -1,56 +1,60 @@
 from shamir import Share
 
-class Circuit:
+class RuntimeCircuit:
 
-	def __init__(self, path, input_types):
-		with open(path, "r") as f:
-			data = f.read()
-		circuit, n_layers, outputs = self.__load_bristol_circuit(data, input_types)
-		self.output_indexes = outputs
-		self.circuit_layers = [[] for _ in range(n_layers+1)]
-		lines = [k for k in data.split("\n")[4:] if 'EQW' not in k]
-		order = [int(i.split()[-2])+2 for i in lines]
-		self.tape_len = max(order)+1
-		for i in order:
-			gate = circuit[i]
-			if gate[1] != None:
-				self.circuit_layers[gate[0][1]].append((i, gate[0][2], gate[1]))
-
-	async def evaluate(self, inputs, shamir=None, dispatcher=None, triples=None):
-		tape = [None for _ in range(self.tape_len)]
-		tape[0] = 0
-		tape[1] = 1
+	def __init__(self, circuit, inputs, triples=None, shamir=None):
+		self.circuit_layers = circuit.circuit_layers
+		self.tape_len = circuit.tape_len
+		self.output_indexes = circuit.output_indexes
+		self.tape = [None for _ in range(self.tape_len)]
+		self.tape[0] = 0
+		self.tape[1] = 1
 		for i in range(len(inputs)):
-			tape[i+2] = inputs[i]
-		for i in range(len(self.circuit_layers)):
-			layer = self.circuit_layers[i]
-			x_shares = []
-			y_shares = []
-			indexes = [gate[0] for gate in layer if gate[1]==True]
-			for gate in layer:
-				if not gate[1]:
-					if gate[2][-1] == 'XOR':
-						tape[gate[0]] = self.__XOR(tape[gate[2][-2]], tape[gate[2][-3]])
-					elif gate[2][-1] == 'AND':
-						tape[gate[0]] = self.__AND(tape[gate[2][-2]], tape[gate[2][-3]])
-					else:
-						raise ValueError(f"Improperly formatted gate: {gate}")
+			self.tape[i+2] = inputs[i]
+		self.triples = triples
+		self.shamir = shamir
+
+	def compute_layer(self, i):
+		layer = self.circuit_layers[i]
+		x_shares = []
+		y_shares = []
+		indexes = [gate[0] for gate in layer if gate[1]==True]
+		for gate in layer:
+			if not gate[1]:
+				if gate[2][-1] == 'XOR':
+					self.tape[gate[0]] = self.__XOR(self.tape[gate[2][-2]], self.tape[gate[2][-3]])
+				elif gate[2][-1] == 'AND':
+					self.tape[gate[0]] = self.__AND(self.tape[gate[2][-2]], self.tape[gate[2][-3]])
 				else:
-					x_shares.append(tape[gate[2][-3]])
-					y_shares.append(tape[gate[2][-2]])
-			if len(indexes) > 0:
-				round_ts = triples[:len(indexes)]
-				triples = triples[len(indexes):]
-				#print(f"Circuit {dispatcher.index} sending MPC messages for round {i}")
-				msg = shamir.mul_gates_round_1(x_shares, y_shares, round_ts)
-				dispatcher.broadcast("MUL", i, msg)
-				#print(f"Circuit {dispatcher.index} collecting MPC messages for round {i}")
-				resps = dispatcher.collect(i)
+					raise ValueError(f"Improperly formatted gate: {gate}")
+			else:
+				x_shares.append(self.tape[gate[2][-3]])
+				y_shares.append(self.tape[gate[2][-2]])
+		msg = None
+		round_ts = []
+		if len(indexes) > 0:
+			round_ts = self.triples[:len(indexes)]
+			self.triples = self.triples[len(indexes):]
+			msg = self.shamir.mul_gates_round_1(x_shares, y_shares, round_ts)	
+		return indexes, x_shares, y_shares, msg, [t.c for t in round_ts]
+
+	def finish_layer(self, indexes, x_shares, y_shares, msgs, cs):
+		vals = self.shamir.mul_gates_round_2(x_shares, y_shares, msgs, cs)
+		for k in range(len(indexes)):
+			self.tape[indexes[k]] = vals[k]
+
+	def get_outputs(self):
+		return [self.tape[i] for i in self.output_indexes]
+
+	def evaluate(self, mock_messenger=None):
+		for i in range(len(self.circuit_layers)):
+			idxs, x, y, msg, cs = self.compute_layer(i)
+			if len(idxs) > 0:
+				mock_messenger.broadcast("MUL", i, msg)
+				resps = mock_messenger.collect(i)
 				resps.append(msg)
-				vals = shamir.mul_gates_round_2(x_shares, y_shares, resps, [t.c for t in round_ts])
-				for k in range(len(indexes)):
-					tape[indexes[k]] = vals[k]
-		return [tape[k] for k in self.output_indexes]
+				self.finish_layer(idxs, x, y, resps, cs)
+		return self.get_outputs()
 
 	def __XOR(self, a, b):
 		if (type(a) == Share) and (type(b) == Share):
@@ -74,7 +78,23 @@ class Circuit:
 		else:
 			raise ValueError(f"Inputs do not match AND gate: {(a, type(a)), (b, type(b))}")
 
-	def __load_bristol_circuit(self, data, input_types):
+class Circuit:
+
+	def __init__(self, path, input_types):
+		with open(path, "r") as f:
+			data = f.read()
+		circuit, n_layers, outputs = self.load_bristol_circuit(data, input_types)
+		self.output_indexes = outputs
+		self.circuit_layers = [[] for _ in range(n_layers+1)]
+		lines = [k for k in data.split("\n")[4:] if 'EQW' not in k]
+		order = [int(i.split()[-2])+2 for i in lines]
+		self.tape_len = max(order)+1
+		for i in order:
+			gate = circuit[i]
+			if gate[1] != None:
+				self.circuit_layers[gate[0][1]].append((i, gate[0][2], gate[1]))
+
+	def load_bristol_circuit(self, data, input_types):
 		lines = data.split("\n")
 		last_index = int(lines[0].split()[-1])
 		inputs = [int(i) for i in lines[1].split() if i!='']
