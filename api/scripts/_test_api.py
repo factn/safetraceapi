@@ -69,7 +69,7 @@ def assert_and_print_response (response):
     print_obj (response)
 
 
-LOCAL = True
+LOCAL = False
 BASE_URL = 'http://localhost:3000' if LOCAL else 'https://safetraceapi.herokuapp.com'
 
 try:
@@ -168,7 +168,7 @@ try:
     # minute = math.floor(time_posted.minute / 10) * 10
     # computation_id_when_posted = '{}:{}-{}/{}/{}'.format(time_posted.hour, minute if minute >= 10 else '0' + str(minute), time_posted.month, time_posted.day, time_posted.year)
 
-    computation_id_when_posted = '{}-{}/{}/{}'.format(time_posted.hour, time_posted.month, time_posted.day, time_posted.year)
+    computation_id_when_posted = '{}-{}/{}/{}'.format(time_posted.hour, time_posted.month - 1, time_posted.day, time_posted.year)
 
     delta = dt.timedelta(hours=1)
     # delta = dt.timedelta(minutes=10)

@@ -14,8 +14,8 @@ app.use (helmet())
 app.use (cors());
 app.use (morgan('dev'));
 app.use (compression());
-app.use (bodyParser.urlencoded({ extended: true }));
-app.use (bodyParser.json());
+// app.use (bodyParser.urlencoded({ extended: true }));
+app.use (bodyParser.json({limit: '500mb'}));
 
 //set up middleware routes
 // app.use('/api/areas', require('./routes/areas'));

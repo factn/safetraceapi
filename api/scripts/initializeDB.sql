@@ -53,6 +53,6 @@ CREATE TABLE results (
     share VARCHAR(8192) NOT NULL,
     
     PRIMARY KEY(area_id, computation_id, node_id),    
-    FOREIGN KEY (node_id) REFERENCES nodes(node_id) ON DELETE CASCADE,
+    FOREIGN KEY (node_id) REFERENCES nodes(node_id) ON DELETE CASCADE--,
     -- FOREIGN KEY (area_id) REFERENCES areas(area_id) ON DELETE CASCADE
 );
