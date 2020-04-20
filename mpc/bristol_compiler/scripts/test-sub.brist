@@ -1,4 +1,0 @@
-in bit64 a
-in bit64 b
-var bit64 c = Sub64(a, b)
-out bit64 c
