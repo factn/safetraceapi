@@ -10,7 +10,11 @@
 
 ## Clone and test
 
+<<<<<<< HEAD
+The SafetraceMPC demo is a *privacy preserving* geolocal intersection.  Choose any standard decimal degree geolocation on the globe and our MPC servers will evaluate whether or not the coordinate falls within Brooklyn, NY. The servers compute this intersection **without ever having access to the client's actual geo-coordinate or leakng any information about it**. The servers do not even learn the result of the computation (only the client can reconstruct the result bit from each of the servers partial results)
+=======
 Clone the root repository and enter the mpc directory. 
+>>>>>>> upstream/master
 
 Before running tests make sure to unzip any zipped files in the `bristol_circuits` directory (some tests will fail if not).
 
