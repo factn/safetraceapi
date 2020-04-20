@@ -1,108 +1,272 @@
 '''
     script to test the api endpoints
 '''
-import _clients
-import _events
-import _devices
-import _permissions
-import _test_script_utils
-import _test_api_utils
-import random
+from __future__ import print_function
+import sys
+import math
+import datetime as dt
+import time
+import requests
+import os
 
-LOCAL = True
-_permissions.BASE_URL = _clients.BASE_URL = _events.BASE_URL = _devices.BASE_URL = 'http://localhost:3000' if LOCAL else 'https://safetraceapi.herokuapp.com'
+def truncate_to_length (value, length = 25):
+    s = str(value)
+    return s if len(s) <= length else (s[:length] + '...')
 
-'''CLEAR THE DATABASE '''
-_test_script_utils.clear_database(LOCAL)
+def print_element (e, indent, prefix, print_normal):
+    if (e is None):
+        return
+    if (isinstance(e, list)):
+        print_array(e, indent+1, prefix)
+    elif (isinstance(e, dict)):
+        print_obj(e, indent+1, prefix)
+    else:
+        print_normal()
 
-'''REGISTER SOME CLIENTS'''
-all_clients = _clients.register_test_clients()
-_test_script_utils.print_all_clients(LOCAL)
-
-'''CLIENT UPDATES ACCOUNT CREDENTIALS'''
-all_clients[1] = _clients.update_client_credentials(all_clients[1])
-_test_script_utils.print_all_clients(LOCAL)
-
-'''CLIENT LOSES AND RECOVERS KEYS'''
-all_clients[1] = _clients.client_lose_and_recover_keys (all_clients[1])
-api_key = all_clients[1]['api_key']
-
-'''REGISTER DEVICES'''
-device_ids = [11111111111, 22222222222, 33333333333, 44444444444]
-print ('\nDEVICE REGISTRATION:')    
-device_keys = [ _devices.register_device (api_key, device_ids[i], i == 0) for i in range(3) ]
-
-_test_script_utils.print_all_devices(LOCAL)
-
-def check_device_registration (device_id, expect):
-    print ('CHECK IF DEVICE REGISTERED (E: {} / V: {}):'.format(expect, _devices.check_device_registration (api_key, device_id)))
+def print_array(a, indent=0, prefix=''):
+    print ('   ' * (indent) + prefix + '[')
+    for e in a:
+        print_element(e, indent, '', lambda: print('   ' * (indent+1) + '{},'.format(truncate_to_length (e))))
+    print ('   ' * (indent) + '],')
     
-check_device_registration (device_ids[0], 'TRUE ')
-check_device_registration (device_ids[3], 'FALSE')
+def print_obj (obj, indent=0, prefix=''):
+    print ('   ' * (indent) + prefix + '{')
+    for key, value in obj.items():
+        print_element (value, indent, str(key) + ": ", lambda: print('   ' * (indent+1) + '{}: {},'.format(str(key), truncate_to_length (value))))
+    print ('   ' * (indent) + '},')
 
-'''POST SOME DATA'''
-def print_events ():
-    _events.print_all_events_for_clients(all_clients)
+def connect_to_db_cmd (local):
+    return 'psql -d safetrace_api -U safetrace_user' if local else 'heroku pg:psql --app safetraceapi'
 
-print ('\nPOSTING GPS:')
-# post GPS location data for device 1
-_events.post_data_row(api_key, device_keys[0], {
-    'device_id': device_ids[0],                 # the associated device_id for the event
-    'row_type': 0,                              # 0 = GPS data
-    'latitude': random.uniform(-90.0, 90.0),    # -90 to 90 float range
-    'longitude': random.uniform(-180.0, 180.0), # -180 to 180 float range
-}, True)
+def clear_database (local):
+    print ('\nCLEARING DATABASE:')
+    os.system('cat api/scripts/initializeDB.sql | ' + connect_to_db_cmd(local))
+
+
+def _print_all_table (table, local):
+    print ('\n{}:'.format(table.upper()))
+    os.system('echo "SELECT * FROM {};" | '.format(table) + connect_to_db_cmd(local))
+
+
+def print_all_triples (local):
+    _print_all_table ('triples', local)
+def print_all_shares (local):
+    _print_all_table ('shares', local)
+def print_all_results (local):
+    _print_all_table ('results', local)
+
+
+def get_safetrace_key ():
+    with open('api/.env') as f:
+        lines = [l.rstrip() for l in f]
+    for l in lines:
+        if l.startswith('SAFETRACE_API_KEY'):
+            return l.split('=')[1]
+        
+
+def assert_and_print_response (response):
+    assert not 'error' in response, response['error']
+    print_obj (response)
+
+
+LOCAL = False
+BASE_URL = 'http://localhost:3000' if LOCAL else 'https://safetraceapi.herokuapp.com'
+
+try:
+    '''CLEAR THE DATABASE '''
+    clear_database(LOCAL)
+
+    print_all_results(LOCAL)
+    print_all_shares(LOCAL)
+    print_all_triples(LOCAL)
+
+    headers = { 
+        'api_key': get_safetrace_key() 
+    }
+
+
+    print('Getting Nodes:')
+    response = requests.get(url=BASE_URL + '/api/nodes', json={ }, headers=headers).json()
+    '''
+    response = {
+        nodes: [
+            {
+                node_id: integer,
+                public_key: string,
+            },
+            { ... },
+            { ... },
+        ]
+    }
+    '''
+    assert_and_print_response (response)
     
-print ('\nPOSTING BLUTOOTH DATA:')
-# simulate device 2 detecting device 3 via Blue tooth
-_events.post_data_row(api_key, device_keys[1], {
-    'device_id': device_ids[1],                 # the associated device_id for the event
-    'row_type': 1,                              # 1 = bluetooth data
-    'contact_id': device_ids[2],                # other device detected by bluetooth
-    'contact_level': random.uniform(0.0, 1.0),  # float value of the bluetooth signal strength
-}, False)
+    all_nodes = response['nodes']
 
-def random_symptoms ():
-    return ", ".join(random.sample(['cough', 'fever', 'nausea', 'fatigue', 'runny nose'], random.randint(1, 5)))
-print ('POSTING SURVEY DATA:')
-# simulate device 1 completing a symptoms survey
-_events.post_data_row(api_key, device_keys[0], {
-    'device_id': device_ids[0],                 # the associated device_id for the event
-    'row_type': 2,                              # 2 = survey data
-    'symptoms': random_symptoms(),              # comma seperated string of symptoms
-    'infection_status': random.randint(0, 3),   # integer 0 - 3 [0 opt out] [1 dont know] [2 infected] [3 recovered]
-}, False)
+    assert len(all_nodes) > 0, 'Forgot to add MPC Nodes'
 
-print_events()
+    '''
+    Simulate posting and getting triples
+    '''
 
-'''UNREGISTER DEVICE 3'''
-_devices.device_opt_out (api_key, device_ids[2])
-_test_script_utils.print_all_devices(LOCAL)
+    node_id_to_use = all_nodes[0]['node_id']
+    print('Posting Triple:')
+    body = { 
+        'node_id': node_id_to_use,
+        'triple_id': 'some triple ID',
+        'share': 'the triple share...'
+    }
+    response = requests.post(url=BASE_URL + '/api/triples', json=body, headers=headers).json()
+    assert_and_print_response (response)
+    '''
+    response = { 
+        status: OK
+    }
+    '''
+    print_all_triples(LOCAL)
 
-print ('CHECK FOR BLUTOOTH DATA DELETE:')
-# (should delete blue tooth contact row since it contains data from device 3 who just opted out)
-print_events()
 
-'''ADJUST PERMISSIONS'''
-client = _permissions.get_all_clients_for_permissions(api_key)[0]
+    print('Getting Triple:')
+    body = { 
+        'node_id': node_id_to_use,
+        'triple_id': 'some triple ID',
+    }
+    response = requests.get(url=BASE_URL + '/api/triples', json=body, headers=headers).json()
+    assert_and_print_response (response)
+    '''
+    response = { 
+        share: share string
+    }
+    '''
+    print_all_triples(LOCAL)
 
-# device 2 grant permissions to client 2 since it's "a super trustworthy client"
-_permissions.grant_permission (api_key, device_ids[0], client['client_id'], device_keys[0], '\nDEVICE 2 GRANTS PERMISSIONS TO CLIENT 2:')
-print_events()
 
-# device 2 no longer wants client 2 to have access to it's data
-_permissions.deny_permissions (api_key, device_ids[0], client['client_id'], '\nDEVICE 2 DENIES PERMISSIONS FROM CLIENT 2:')
-print_events()
-  
-'''DELETE CLIENT ACCOUNT'''
-all_clients[1] = _clients.delete_client_account(all_clients[1])
+    '''
+    POST SHARES (for each node)
+    '''
+    print('Posting Shares')
+    body = { 
+        'shares': [ { 
+            'node_id': n['node_id'],
+            'share': 'share_for_nodeID: {}'.format(n['node_id'])
+        } for n in all_nodes ]
+    }
+    response = requests.post(url=BASE_URL + '/api/shares', json=body, headers=headers).json()
+    '''
+    response = { 
+        status: "OK"
+    }
+    '''
+    assert_and_print_response (response)
+    
+    print_all_shares(LOCAL)
 
-'''SHOW ALL TABLES'''
-print ('\nALL TABLES:')
-_test_script_utils.print_all_clients(LOCAL)
-_test_script_utils.print_all_devices(LOCAL)
-_test_script_utils.print_all_permissions(LOCAL)
-print_events()
+    print('Waiting Until Next Hour To MPC Get')
+    print('')
+    time_posted = dt.datetime.utcnow()
 
-'''CLEAR DATABASE'''
-_test_script_utils.clear_database(LOCAL)
+    # minute = math.floor(time_posted.minute / 10) * 10
+    # computation_id_when_posted = '{}:{}-{}/{}/{}'.format(time_posted.hour, minute if minute >= 10 else '0' + str(minute), time_posted.month, time_posted.day, time_posted.year)
+
+    computation_id_when_posted = '{}-{}/{}/{}'.format(time_posted.hour, time_posted.month - 1, time_posted.day, time_posted.year)
+
+    delta = dt.timedelta(hours=1)
+    # delta = dt.timedelta(minutes=10)
+    
+    # 2 minute buffer to make sure computation id for mpc getting shares is teh one form the posts before
+    clients_post_end_time = (time_posted + delta).replace(microsecond=0, second=0, minute=2) 
+    # clients_post_end_time = (time_posted + delta).replace(microsecond=0, second=0)
+
+    while True:
+        # Wait for 5 seconds
+        time.sleep(1)
+
+        cur_time = dt.datetime.utcnow()
+        
+        sys.stdout.write('\rSeconds Until Next Computation ID: ' + str((clients_post_end_time - cur_time).seconds) + '----------')
+        sys.stdout.flush()
+
+        if cur_time > clients_post_end_time:
+            print('\n')
+            break
+            
+    
+    '''
+    simulate computation for each node
+    '''
+    for n in all_nodes:
+
+        print('Getting Shares For Node ID: ' + str(n['node_id']))
+        body = { 
+            'node_id': n['node_id']
+        }
+        response = requests.get(url=BASE_URL + '/api/shares', json=body, headers=headers).json()
+        '''
+        response = {
+            computation_id: string,
+            shares: [
+                {
+                    device_id: string,
+                    share: string
+                },
+                { ... },
+                { ... },
+            ]
+        }
+        '''
+        assert_and_print_response (response)
+    
+        computation_id = response['computation_id']
+
+        '''
+        MPC does calculations...
+        '''
+        print('Posting Results For Node ID: ' + str(n['node_id']))
+        
+        body = { 
+            'node_id': n['node_id'],
+            'computation_id': computation_id,
+            'shares': [ { 
+                'area_id': i,
+                'share': 'Result share_for_areaID: {}'.format(i)
+            } for i in range(3) ]
+        }
+        response = requests.post(url=BASE_URL + '/api/results', json=body, headers=headers).json()
+        '''
+        response {
+            status: OK
+        }
+        '''
+        assert_and_print_response (response)
+    
+
+    print ('Done With Computations...')
+
+    print_all_results(LOCAL)
+    print_all_shares(LOCAL)
+
+
+    print('Try To Get Result Shares For Computation ID: {}'.format(computation_id_when_posted))
+    body = { 
+        'computation_id': computation_id_when_posted
+    }
+    response = requests.get(url=BASE_URL + '/api/results', json=body, headers=headers).json()
+    '''
+    response {
+        shares: [
+            {
+                node_id: integer,
+                area_id: integer,
+                share: string
+            },
+            { ... },
+            { ... },
+        ]
+    }
+    '''
+    assert_and_print_response (response)
+    
+
+finally:
+    clear_database(LOCAL)
+

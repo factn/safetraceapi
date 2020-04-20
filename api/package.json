@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.local.js",
-    "deploy": "cd ..; git push heroku-st-api `git subtree split --prefix api`:master --force || true; cd api",
-    "deploy2": "cd ..; git subtree push --force --prefix api heroku-st-api master || true; cd api"
+    "deployforce": "cd ..; git push heroku-st-api `git subtree split --prefix api`:master --force || true; cd api",
+    "deploy": "cd ..; git subtree push --prefix api heroku-st-api master || true; cd api"
 
     
 
