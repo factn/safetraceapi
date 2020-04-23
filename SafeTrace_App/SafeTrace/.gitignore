@@ -79,3 +79,7 @@ buck-out/
 
 # Expo
 .expo/*
+
+.env.dev
+.env.prod
+.env.staging
