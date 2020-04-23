@@ -6,12 +6,13 @@
  */
 
 #import <UIKit/UIKit.h>
+#import <UMReactNativeAdapter/UMModuleRegistryAdapter.h>
+#import <React/RCTBridgeDelegate.h>
+#import <UMCore/UMAppDelegateWrapper.h>
 
-@class RCTBridge;
+@interface AppDelegate : UMAppDelegateWrapper <RCTBridgeDelegate>
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
-
+@property (nonatomic, strong) UMModuleRegistryAdapter *moduleRegistryAdapter;
 @property (nonatomic, strong) UIWindow *window;
-@property (nonatomic, readonly) RCTBridge *bridge;
 
 @end
