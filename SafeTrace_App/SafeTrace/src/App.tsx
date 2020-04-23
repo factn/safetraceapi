@@ -3,12 +3,14 @@ import { SafeAreaView } from 'react-native';
 import { ThemeProvider } from 'styled-components/native';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
+import Config from 'react-native-config';
 
 import useLinking from './navigation/useLinking';
 import RootNavigator from './navigation/RootNavigator';
 import { Theme } from '../Theme';
 import { configureStore } from './store';
 import { BaseLayout } from './components';
+import { setRemoteConfigDefaults, fetchRemoteConfigs, readRemoteConfigs, persistRemoteConfigs, Logger } from './services';
 
 interface IProps {
   skipLoadingScreen?: any;
@@ -21,7 +23,14 @@ export default (props: IProps) => {
   const { getInitialState } = useLinking(containerRef);
   const storeRef = configureStore();
 
+  if (__DEV__) {
+    Logger();
+    console.log('Environment Variables: ', Config);
+  }
+
   useEffect(() => {
+    // alert(JSON.stringify(NativeModulesProxy.ExpoLocation));
+
     const loadResourcesAndDataAsync = async () => {
       try {
         // Load our initial navigation state
@@ -35,6 +44,12 @@ export default (props: IProps) => {
     };
 
     loadResourcesAndDataAsync();
+    setRemoteConfigDefaults()
+      .then(() => fetchRemoteConfigs())
+      .then(() => readRemoteConfigs())
+      .then((configs) => {
+        persistRemoteConfigs(configs);
+      });
   }, []);
 
   if (!isLoadingComplete && !props.skipLoadingScreen) {
