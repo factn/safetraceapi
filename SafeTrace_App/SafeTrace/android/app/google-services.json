@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "638992463857",
+    "firebase_url": "https://factn-safetrace.firebaseio.com",
+    "project_id": "factn-safetrace",
+    "storage_bucket": "factn-safetrace.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:638992463857:android:7aee89a7891d0ea30c7650",
+        "android_client_info": {
+          "package_name": "org.safetraceapi.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "638992463857-3v2dqclb61ar8p4bgs61eoe47kuj05bm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAXdhKM9jzQ9ZYbNrYUA3C4H5GpyEMG2I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "638992463857-3v2dqclb61ar8p4bgs61eoe47kuj05bm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
