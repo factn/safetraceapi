@@ -29,10 +29,16 @@ declare module 'react-native' {
     noticeBackground: string;
     noticeText: string;
   }
+
+  export interface IThemeUtils {
+    isIOS: boolean;
+    isAndroid: boolean;
+  }
   
   export interface ITheme {
     fonts: IThemeFonts;
     colors: IThemeColors;
     layout: IThemeLayout;
+    utils: IThemeUtils;
   }
 }
