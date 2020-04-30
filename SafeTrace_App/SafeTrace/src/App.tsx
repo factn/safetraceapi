@@ -1,19 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeProvider } from 'styled-components/native';
 import { Provider } from 'react-redux';
-import { PersistGate } from 'redux-persist/integration/react';
 import Config from 'react-native-config';
+import * as Permissions from 'expo-permissions';
+import * as Location from 'expo-location';
 
 import useLinking from './navigation/useLinking';
 import RootNavigator from './navigation/RootNavigator';
 import { Theme } from '../Theme';
-import { configureStore } from './store';
+import { store } from './store';
 import { BaseLayout } from './components';
-import { setRemoteConfigDefaults, fetchRemoteConfigs, readRemoteConfigs, persistRemoteConfigs, Logger } from './services';
+import {
+  setRemoteConfigDefaults,
+  fetchRemoteConfigs,
+  readRemoteConfigs,
+  persistRemoteConfigs,
+  Logger,
+} from './services';
 
 interface IProps {
   skipLoadingScreen?: any;
+}
+
+if (__DEV__) {
+  new Logger({ enableLog: true });
+  console.log('Environment Variables: ', Config);
 }
 
 export default (props: IProps) => {
@@ -21,12 +33,6 @@ export default (props: IProps) => {
   const [initialNavigationState, setInitialNavigationState] = React.useState();
   const containerRef = useRef();
   const { getInitialState } = useLinking(containerRef);
-  const storeRef = configureStore();
-
-  if (__DEV__) {
-    Logger();
-    console.log('Environment Variables: ', Config);
-  }
 
   useEffect(() => {
     // alert(JSON.stringify(NativeModulesProxy.ExpoLocation));
@@ -43,7 +49,36 @@ export default (props: IProps) => {
       }
     };
 
+    const getLocationAsync = async () => {
+      // permissions returns only for location permissions on iOS and under certain conditions, see Permissions.LOCATION
+      const { status } = await Permissions.askAsync(Permissions.LOCATION);
+      if (status === 'granted') {
+        return Location.getCurrentPositionAsync({ enableHighAccuracy: true });
+      } else {
+        throw new Error('Location permission not granted');
+      }
+    };
+
+    const getNotificationAsync = async () => {
+      const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+      if (status !== 'granted') {
+        throw new Error('Notification permission not granted');
+      }
+    };
+
+    const checkMultiPermissions = async () => {
+      const { status } = await Permissions.getAsync(
+        Permissions.LOCATION,
+        Permissions.NOTIFICATIONS
+      );
+      if (status !== 'granted') {
+        getLocationAsync();
+        getNotificationAsync();
+      }
+    };
+
     loadResourcesAndDataAsync();
+    checkMultiPermissions();
     setRemoteConfigDefaults()
       .then(() => fetchRemoteConfigs())
       .then(() => readRemoteConfigs())
@@ -54,26 +89,24 @@ export default (props: IProps) => {
 
   if (!isLoadingComplete && !props.skipLoadingScreen) {
     return (
-      <SafeAreaView>
+      <SafeAreaProvider>
         <BaseLayout />
-      </SafeAreaView>
+      </SafeAreaProvider>
     );
   } else {
     return (
-      <SafeAreaView style={{ flex: 1 }}>
-        <BaseLayout>
+      <SafeAreaProvider>
+        <SafeAreaView style={{ flex: 1 }}>
           <ThemeProvider theme={Theme}>
-            <Provider store={storeRef.store}>
-              <PersistGate loading={null} persistor={storeRef.persistor}>
-                <RootNavigator
-                  containerRef={containerRef}
-                  initialState={initialNavigationState}
-                />
-              </PersistGate>
+            <Provider store={store}>
+              <RootNavigator
+                containerRef={containerRef}
+                initialState={initialNavigationState}
+              />
             </Provider>
           </ThemeProvider>
-        </BaseLayout>
-      </SafeAreaView>
+        </SafeAreaView>
+      </SafeAreaProvider>
     );
   }
 };
