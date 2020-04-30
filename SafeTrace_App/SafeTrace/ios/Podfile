@@ -54,6 +54,10 @@ target 'SafeTrace' do
   pod 'lottie-ios', :path => '../node_modules/lottie-ios'
   pod 'react-native-config', :path => '../node_modules/react-native-config'
 
+  pod 'react-native-safe-area-context', :path => '../node_modules/react-native-safe-area-context'
+
+  pod 'react-native-randombytes', :path => '../node_modules/react-native-randombytes'
+
 end
 
 #post_install do |installer_representation|
