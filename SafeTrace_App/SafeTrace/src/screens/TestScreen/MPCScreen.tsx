@@ -44,33 +44,33 @@ export class MPCScreen extends Component {
   }
 
   handleCallNode() {
-    // fetch('https://safetraceapi.herokuapp.com/api/nodes', {
-    //   method: 'GET',
-    //   headers: new Headers({
-    //     'api_key': '4b6bff10-760e-11ea-bcd4-03a854e8623c'
-    //   })
-    // })
-    // .then((data) => data.json())
-    // .then((resp) => alert(JSON.stringify(resp)));
-
-    fetch("https://safetraceapi.herokuapp.com/api/shares", {
-      method: "POST",
+    fetch('https://safetraceapi.herokuapp.com/api/nodes', {
+      method: 'GET',
       headers: new Headers({
-        api_key: "4b6bff10-760e-11ea-bcd4-03a854e8623c",
-        "Content-Type": "application/json",
-      }),
-      body: JSON.stringify({
-        shares: [
-          {
-            node_id: 1,
-            share:
-              '{"result": [[1, 239], [1, 100], [1, 39], [1, 12], [1, 178], [1, 233], [1, 102], [1, 195], [1, 254], [1, 16], [1, 181], [1, 186], [1, 42], [1, 11], [1, 28], [1, 2], [1, 67], [1, 108], [1, 158], [1, 76], [1, 33], [1, 86], [1, 124], [1, 191], [1, 195], [1, 83], [1, 103], [1, 125], [1, 160], [1, 149], [1, 78], [1, 128]]}',
-          },
-        ],
-      }),
+        'api_key': '4b6bff10-760e-11ea-bcd4-03a854e8623c'
+      })
     })
-      .then((data) => data.json())
-      .then((resp) => alert(JSON.stringify(resp)));
+    .then((data) => data.json())
+    .then((resp) => alert(JSON.stringify(resp)));
+
+    // fetch("https://safetraceapi.herokuapp.com/api/shares", {
+    //   method: "POST",
+    //   headers: new Headers({
+    //     api_key: "4b6bff10-760e-11ea-bcd4-03a854e8623c",
+    //     "Content-Type": "application/json",
+    //   }),
+    //   body: JSON.stringify({
+    //     shares: [
+    //       {
+    //         node_id: 1,
+    //         share:
+    //           '{"result": [[1, 239], [1, 100], [1, 39], [1, 12], [1, 178], [1, 233], [1, 102], [1, 195], [1, 254], [1, 16], [1, 181], [1, 186], [1, 42], [1, 11], [1, 28], [1, 2], [1, 67], [1, 108], [1, 158], [1, 76], [1, 33], [1, 86], [1, 124], [1, 191], [1, 195], [1, 83], [1, 103], [1, 125], [1, 160], [1, 149], [1, 78], [1, 128]]}',
+    //       },
+    //     ],
+    //   }),
+    // })
+    //   .then((data) => data.json())
+    //   .then((resp) => console.log(JSON.stringify(resp)));
   }
 
   render() {
