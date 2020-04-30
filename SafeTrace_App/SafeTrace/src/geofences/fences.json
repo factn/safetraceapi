@@ -1,0 +1,74 @@
+[
+  {
+    "identifier": "1",
+    "latitude": 43.662701,
+    "longitude": -79.403590,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "2",
+    "latitude": 43.664317,
+    "longitude": -79.397259,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "3",
+    "latitude": 43.663475,
+    "longitude": -79.393466,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "4",
+    "latitude": 43.660478,
+    "longitude": -79.390883,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "5",
+    "latitude": 43.657186,
+    "longitude": -79.389517,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "6",
+    "latitude": 43.651597,
+    "longitude": -79.387146,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "7",
+    "latitude": 43.646487,
+    "longitude": -79.384138,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "8",
+    "latitude": 43.6433012,
+    "longitude": -79.3900719,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "9",
+    "latitude": 43.651331,
+    "longitude": -79.412431,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  }
+]
