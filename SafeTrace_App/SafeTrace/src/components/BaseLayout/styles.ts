@@ -5,5 +5,4 @@ export const RootContainer = styled.View<{
   theme?: ITheme;
 }>`
   flex: 1;
-  ${props => Platform.OS === 'android' && `padding-top: ${StatusBar.currentHeight}`};
 `;
