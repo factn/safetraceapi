@@ -196,9 +196,14 @@ export const LocationScreen = () => {
                     // const dataStr = JSON.stringify({ data });
                     // // JSON.stringify(btoa(encrypt(node.public_key, dataBuffer)));
                     // alert(base64.encode(encrypt(node.public_key, Buffer.from(dataStr))));
-                    const k1 = new PrivateKey();
-                    const data = Buffer.from('this is a test');
-                    const buf = encrypt(k1.publicKey.toHex(), data);
+
+                    // const k1 = new PrivateKey();
+                    // const data = Buffer.from('this is a test');
+                    // const buf = encrypt(k1.publicKey.toHex(), data);
+                    // const encoded = b64encode(buf);
+
+                    const d = Buffer.from(JSON.stringify({ data }));
+                    const buf = encrypt(node.public_key, data);
                     const encoded = b64encode(buf);
 
                     sharesBody.push({
