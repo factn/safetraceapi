@@ -6,6 +6,11 @@ import android.net.Uri;
 
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.bitgo.randombytes.RandomBytesPackage;
+import com.th3rdwave.safeareacontext.SafeAreaContextPackage;
+import com.lugg.ReactNativeConfig.ReactNativeConfigPackage;
+import com.lugg.ReactNativeConfig.ReactNativeConfigPackage;
+import com.airbnb.android.react.lottie.LottiePackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
@@ -44,6 +49,7 @@ public class MainApplication extends Application implements ReactApplication {
       List<ReactPackage> packages = new PackageList(this).getPackages();
       packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
       packages.add(new MPCPackage());
+      packages.add(new SafeAreaContextPackage());
       return packages;
     }
 

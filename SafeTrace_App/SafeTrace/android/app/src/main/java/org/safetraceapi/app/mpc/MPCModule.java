@@ -61,7 +61,7 @@ public class MPCModule extends ReactContextBaseJavaModule {
         byte[] vals = entry.getValue();
 
         for (byte val : vals) {
-          shares.add(new int[]{entry.getKey(), val});
+          shares.add(new int[]{entry.getKey(), val & 0xff});
         }
       }
 

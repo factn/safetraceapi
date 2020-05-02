@@ -1,32 +1,21 @@
-import { compose, applyMiddleware, createStore, combineReducers } from 'redux';
-import thunk from 'redux-thunk';
-import { persistStore, persistReducer } from 'redux-persist';
-import AsyncStorage from '@react-native-community/async-storage';
+import {configureStore, ThunkAction, Action} from '@reduxjs/toolkit';
+import {useDispatch} from 'react-redux';
 
+import {locationSlice} from './location.slice';
 
-const rootReducer = combineReducers({
-  app: require('./AppRedux').reducer,
+export const store = configureStore({
+  reducer: {
+    location: locationSlice.reducer,
+  },
 });
 
-export const configureStore = () => {
-  const persistConfig = {
-    key: 'root',
-    storage: AsyncStorage,
-  };
-  
-  const middlewares: any[] = [thunk];
-  const enhancers: any[] = [];
-  
-  if (__DEV__) {
-    const { logger } = require('redux-logger');
-  
-    middlewares.push(logger);
-  }
+export type AppDispatch = typeof store.dispatch;
+export const useAppDispatch = () => useDispatch<AppDispatch>(); // Export a hook that can be resused to resolve types
 
-  enhancers.push(applyMiddleware(...middlewares));
-  const persistedReducer = persistReducer(persistConfig, rootReducer);
-  const store = createStore(persistedReducer, compose(...enhancers));
-  const persistor = persistStore(store);
-
-  return { store, persistor };
-}
+export type RootState = ReturnType<typeof store.getState>;
+export type AppThunk<ReturnType = void> = ThunkAction<
+  ReturnType,
+  RootState,
+  unknown,
+  Action<string>
+>;

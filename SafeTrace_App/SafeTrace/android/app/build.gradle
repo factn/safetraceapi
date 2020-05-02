@@ -1,4 +1,6 @@
 apply plugin: "com.android.application"
+apply plugin: 'com.google.gms.google-services'
+apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 import com.android.build.OutputFile
 
@@ -134,7 +136,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0.0"
+        versionName "0.0.1"
     }
     splits {
         abi {
@@ -186,6 +188,8 @@ dependencies {
     addUnimodulesDependencies()
   
     implementation "com.google.code.gson:gson:2.8.4"
+
+    implementation 'com.google.firebase:firebase-analytics:17.2.2'
 
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
