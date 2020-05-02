@@ -1,0 +1,202 @@
+[
+  {
+    "identifier": "1",
+    "latitude": 43.714218,
+    "longitude": -79.424646,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "2",
+    "latitude": 43.714106,
+    "longitude": -79.418703,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "3",
+    "latitude": 43.715899,
+    "longitude": -79.415913,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "4",
+    "latitude": 43.715488,
+    "longitude": -79.412502,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "5",
+    "latitude": 43.713209,
+    "longitude": -79.412399,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "6",
+    "latitude": 43.710931,
+    "longitude": -79.410848,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "7",
+    "latitude": 43.709175,
+    "longitude": -79.411210,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "8",
+    "latitude": 43.707531,
+    "longitude": -79.409660,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "9",
+    "latitude": 43.704767,
+    "longitude": -79.409091,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "10",
+    "latitude": 43.702152,
+    "longitude": -79.406921,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "11",
+    "latitude": 43.699611,
+    "longitude": -79.406921,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "12",
+    "latitude": 43.697407,
+    "longitude": -79.403820,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "13",
+    "latitude": 43.694642,
+    "longitude": -79.402735,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "14",
+    "latitude": 43.677401,
+    "longitude": -79.395622,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "15",
+    "latitude": 43.660697,
+    "longitude": -79.389486,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  }, 
+  {
+    "identifier": "16",
+    "latitude": 43.711601,
+    "longitude": -79.426858,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "17",
+    "latitude": 43.706521,
+    "longitude": -79.427862,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "18",
+    "latitude": 43.701843,
+    "longitude": -79.424627,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "19",
+    "latitude": 43.693374,
+    "longitude": -79.423735,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "20",
+    "latitude": 43.687970,
+    "longitude": -79.419161,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "21",
+    "latitude": 43.683129,
+    "longitude": -79.415926,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "22",
+    "latitude": 43.686356,
+    "longitude": -79.408674,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "23",
+    "latitude": 43.684823,
+    "longitude": -79.401646,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "24",
+    "latitude": 43.696387,
+    "longitude": -79.414656,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  },
+  {
+    "identifier": "25",
+    "latitude": 43.709348,
+    "longitude": -79.418618,
+    "radius": 200.0,
+    "notifyOnEnter": true,
+    "notifyOnExit": false
+  }
+]
