@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>SafeTrace API | Infection Heatmap</title>
+  <style>
+    /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+    #map {
+      height: 100%;
+    }
+
+    /* Optional: Makes the sample page fill the window. */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #floating-panel {
+      position: absolute;
+      top: 10px;
+      left: 25%;
+      z-index: 5;
+      background-color: #fff;
+      padding: 5px;
+      border: 1px solid #999;
+      text-align: center;
+      font-family: 'Roboto', 'sans-serif';
+      line-height: 30px;
+      padding-left: 10px;
+    }
+
+    #floating-panel {
+      background-color: #fff;
+      border: 1px solid #999;
+      left: 25%;
+      padding: 5px;
+      position: absolute;
+      top: 10px;
+      z-index: 5;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="floating-panel">
+    <button onclick="toggleHeatmap()">Toggle Heatmap</button>
+    <button onclick="changeGradient()">Change gradient</button>
+    <button onclick="changeRadius()">Change radius</button>
+    <button onclick="changeOpacity()">Change opacity</button>
+  </div>
+  <div id="map"></div>
+  <script>
+
+    var map, heatmap;
+
+    var fences = [
+      {
+        "identifier": "1",
+        "latitude": 43.714218,
+        "longitude": -79.424646,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "2",
+        "latitude": 43.714106,
+        "longitude": -79.418703,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "3",
+        "latitude": 43.715899,
+        "longitude": -79.415913,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "4",
+        "latitude": 43.715488,
+        "longitude": -79.412502,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "5",
+        "latitude": 43.713209,
+        "longitude": -79.412399,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "6",
+        "latitude": 43.710931,
+        "longitude": -79.410848,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "7",
+        "latitude": 43.709175,
+        "longitude": -79.411210,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "8",
+        "latitude": 43.707531,
+        "longitude": -79.409660,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "9",
+        "latitude": 43.704767,
+        "longitude": -79.409091,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "10",
+        "latitude": 43.702152,
+        "longitude": -79.406921,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "11",
+        "latitude": 43.699611,
+        "longitude": -79.406921,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "12",
+        "latitude": 43.697407,
+        "longitude": -79.403820,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "13",
+        "latitude": 43.694642,
+        "longitude": -79.402735,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "14",
+        "latitude": 43.677401,
+        "longitude": -79.395622,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "15",
+        "latitude": 43.660697,
+        "longitude": -79.389486,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "16",
+        "latitude": 43.711601,
+        "longitude": -79.426858,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "17",
+        "latitude": 43.706521,
+        "longitude": -79.427862,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "18",
+        "latitude": 43.701843,
+        "longitude": -79.424627,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "19",
+        "latitude": 43.693374,
+        "longitude": -79.423735,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "20",
+        "latitude": 43.687970,
+        "longitude": -79.419161,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "21",
+        "latitude": 43.683129,
+        "longitude": -79.415926,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "22",
+        "latitude": 43.686356,
+        "longitude": -79.408674,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "23",
+        "latitude": 43.684823,
+        "longitude": -79.401646,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "24",
+        "latitude": 43.696387,
+        "longitude": -79.414656,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      },
+      {
+        "identifier": "25",
+        "latitude": 43.709348,
+        "longitude": -79.418618,
+        "radius": 200.0,
+        "notifyOnEnter": true,
+        "notifyOnExit": false
+      }
+    ];
+
+    function generateCompId(dateObj, isInitialLoad){
+      utc = dateObj.getTime() + (dateObj.getTimezoneOffset() * 60000);
+      nd = new Date(utc + (3600000*-4));
+      day = nd.getDay();
+      month = nd.getMonth()-1;
+      minute = nd.getMinutes();
+      hour = nd.getHours();
+      year = nd.getFullYear();
+
+      if(isInitialLoad!=false){ //on first load, go back in time to last available data
+        minute = minute - (minute%10);
+      }
+      
+      if(minute.toString().length < 2){
+          return ''.concat(hour.toString(),':0',minute.toString(),'-',month.toString(),'/',day.toString(),'/',year.toString());
+      }
+      else{
+          return ''.concat(hour.toString(),':',minute.toString(),'-',month.toString(),'/',day.toString(),'/',year.toString());
+      }
+      //return '21:50-4/1/2020';
+    }
+    
+    var date = new Date();
+    var url = 'https://cors-anywhere.herokuapp.com/https://mpc-results.herokuapp.com/?computation_id='+ generateCompId(date, true);
+
+    function initMap() {
+      var out = [];
+
+      console.log(url);
+      //let url = 'https://cors-anywhere.herokuapp.com/https://mpc-results.herokuapp.com/?computation_id='+ generateCompId(date);
+      
+      fetch(url, {
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        },
+        // mode: 'no-cors'
+      })
+        .then((data) => data.json())
+        .then((data) => {
+          console.warn(data);
+          var co = 1;
+
+          fences.forEach((fence) => {
+            //console.warn(data[co]);
+            if (!!fence) {
+              for (i = 0; i < data[co]; i++) {
+                out.push(new google.maps.LatLng(fence.latitude, fence.longitude));
+              }
+              co++;
+            }
+          })
+
+          map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 13,
+            center: { lat: 43.696387, lng: -79.418618 },
+            mapTypeId: 'terrain'
+          });
+
+          heatmap = new google.maps.visualization.HeatmapLayer({
+            data: out,
+            map: map
+          });
+        })
+        .catch((err) => console.error(err));
+      
+    }
+
+    window.setInterval(function(){
+      date = new Date();
+      if(date.getMinutes() % 10 === 0){
+        setTimeout(() => {
+          url = 'https://cors-anywhere.herokuapp.com/https://mpc-results.herokuapp.com/?computation_id='+ generateCompId(date, false);
+          initMap();
+        }, 60000); //end set timeout (1 min)
+      }//end if for time
+      
+    }, 60000); //end check time interval
+
+    function toggleHeatmap() {
+      heatmap.setMap(heatmap.getMap() ? null : map);
+    }
+
+    function changeGradient() {
+      var gradient = [
+        'rgba(0, 255, 255, 0)',
+        'rgba(0, 255, 255, 1)',
+        'rgba(0, 191, 255, 1)',
+        'rgba(0, 127, 255, 1)',
+        'rgba(0, 63, 255, 1)',
+        'rgba(0, 0, 255, 1)',
+        'rgba(0, 0, 223, 1)',
+        'rgba(0, 0, 191, 1)',
+        'rgba(0, 0, 159, 1)',
+        'rgba(0, 0, 127, 1)',
+        'rgba(63, 0, 91, 1)',
+        'rgba(127, 0, 63, 1)',
+        'rgba(191, 0, 31, 1)',
+        'rgba(255, 0, 0, 1)'
+      ]
+      heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
+    }
+
+    function changeRadius() {
+      heatmap.set('radius', heatmap.get('radius') ? null : 20);
+    }
+
+    function changeOpacity() {
+      heatmap.set('opacity', heatmap.get('opacity') ? null : 0.2);
+    }
+ 
+  </script>
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyALGjFvmDQaXBpUmzJw9xjEGceUva7kqsE&callback=initMap&libraries=visualization">
+  </script>
+
+</body>
+
+</html>
