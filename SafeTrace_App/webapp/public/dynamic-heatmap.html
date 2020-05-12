@@ -262,15 +262,15 @@
 
     function generateCompId(dateObj, isInitialLoad){
       utc = dateObj.getTime() + (dateObj.getTimezoneOffset() * 60000);
-      nd = new Date(utc + (3600000*-4));
-      day = nd.getDay();
-      month = nd.getMonth()-1;
-      minute = nd.getMinutes();
+      nd = new Date(utc);
+      day = nd.getDate();
+      month = nd.getMonth();
+      minute = nd.getMinutes()-10;
       hour = nd.getHours();
       year = nd.getFullYear();
 
       if(isInitialLoad!=false){ //on first load, go back in time to last available data
-        minute = minute - (minute%10);
+        minute = minute - (minute%5);
       }
       
       if(minute.toString().length < 2){
@@ -279,7 +279,6 @@
       else{
           return ''.concat(hour.toString(),':',minute.toString(),'-',month.toString(),'/',day.toString(),'/',year.toString());
       }
-      //return '21:50-4/1/2020';
     }
     
     var date = new Date();
@@ -289,13 +288,11 @@
       var out = [];
 
       console.log(url);
-      //let url = 'https://cors-anywhere.herokuapp.com/https://mpc-results.herokuapp.com/?computation_id='+ generateCompId(date);
       
       fetch(url, {
         headers: {
           'Access-Control-Allow-Origin': '*'
         },
-        // mode: 'no-cors'
       })
         .then((data) => data.json())
         .then((data) => {
@@ -303,7 +300,6 @@
           var co = 1;
 
           fences.forEach((fence) => {
-            //console.warn(data[co]);
             if (!!fence) {
               for (i = 0; i < data[co]; i++) {
                 out.push(new google.maps.LatLng(fence.latitude, fence.longitude));
@@ -313,7 +309,7 @@
           })
 
           map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 13,
+            zoom: 10,
             center: { lat: 43.696387, lng: -79.418618 },
             mapTypeId: 'terrain'
           });
@@ -329,11 +325,12 @@
 
     window.setInterval(function(){
       date = new Date();
-      if(date.getMinutes() % 10 === 0){
+      if(date.getMinutes() % 5 === 0){
+        url = 'https://cors-anywhere.herokuapp.com/https://mpc-results.herokuapp.com/?computation_id='+ generateCompId(date, false);
         setTimeout(() => {
-          url = 'https://cors-anywhere.herokuapp.com/https://mpc-results.herokuapp.com/?computation_id='+ generateCompId(date, false);
           initMap();
-        }, 60000); //end set timeout (1 min)
+        //}, 60000); //end set timeout (1 min)
+        }, 180000); //3 mins
       }//end if for time
       
     }, 60000); //end check time interval
